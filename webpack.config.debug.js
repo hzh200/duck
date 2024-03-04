@@ -1,5 +1,4 @@
 const path = require('path');
-// const nodeExternals = require('webpack-node-externals');
 
 module.exports = [{
     target: 'electron-renderer',
@@ -46,7 +45,10 @@ module.exports = [{
         ]
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: ['.tsx', '.ts', '.jsx', '.js'],
+        alias: {
+          '@': path.resolve(__dirname, 'src/app')
+        }
     },
     devtool: 'source-map'
 }, {
@@ -76,7 +78,7 @@ module.exports = [{
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['@babel/preset-env', '@babel/preset-react']
+                        presets: ['@babel/preset-env']
                     }
                 },
                 exclude: /node_modules/

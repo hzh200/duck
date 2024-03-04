@@ -6,8 +6,8 @@ const APP_PATH = resolve(__dirname, "./index.html");
 const KERNEL_PATH = resolve(__dirname, "./kernel");
 const KERNEL_PORT = 9000;
 
-let mainWindow: BrowserWindow;
-let kernel: ChildProcessWithoutNullStreams;
+let mainWindow!: BrowserWindow;
+let kernel!: ChildProcessWithoutNullStreams;
 
 let appTerminating = false;
 
@@ -70,21 +70,20 @@ const shutdownSystem = async () => {
 
 if (!app.requestSingleInstanceLock()) {
   console.error("An instance is already running.");
-  shutdownSystem();
+  await shutdownSystem();
 }
 
-app.whenReady()
-  .then(launchSystem)
-  .then(() => {
-    mainWindow.on("close", async (event: Event) => {
-      if (appTerminating) {
-        return;
-      }
-      event.preventDefault();
-      await shutdownSystem();
-    });
-  })
-  .catch(async (err) => {
-    console.error(err);
+try {
+  await app.whenReady();
+  await launchSystem();
+  mainWindow.on("close", async (event: Event) => {
+    if (appTerminating) {
+      return;
+    }
+    event.preventDefault();
     await shutdownSystem();
   });
+} catch (err) {
+  console.error(err);
+  await shutdownSystem();
+}

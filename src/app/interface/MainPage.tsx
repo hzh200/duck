@@ -1,5 +1,5 @@
 import * as React from 'react';
-import ToolBar from './ToolBar';
+import ToolBar from '@/interface/ToolBar';
 
 function MainPage() {
   return <div>
