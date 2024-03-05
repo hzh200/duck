@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
-import MainPage from '@/interface/MainPage';
+import AppPage from '@/interfaces/AppPage';
 
 const root = ReactDOM.createRoot(<HTMLElement>document.getElementById('root'));
 
-root.render(MainPage());
+root.render(AppPage());
