@@ -1,0 +1,13 @@
+#frame {
+    width: 100%;
+    display: flex;
+}
+
+#frame-dragger {
+    -webkit-app-region: drag;
+    width: -webkit-fill-available;
+}
+
+#frame-control {
+    width: 80px;
+}

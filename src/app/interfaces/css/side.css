@@ -1,4 +1,4 @@
 #side {
-    height: 100%;
+    height: -webkit-fill-available;
     width: 30%;
 }

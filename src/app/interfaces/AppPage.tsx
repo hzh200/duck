@@ -1,18 +1,18 @@
 import * as React from 'react';
+import Frame from '@/interfaces/Frame';
 import MainPanel from '@/interfaces/MainPanel';
 import SidePanel from '@/interfaces/SidePanel';
 
-import './css/globals.css';
 import './css/app.css';
 
 function AppPage() {
   return (
-    <div id="app">
-      <div id="frame">
-
+    <div id='app'>
+      <Frame />
+      <div id='content'>
+        <MainPanel />
+        <SidePanel />
       </div>
-      <MainPanel />
-      <SidePanel />
     </div>
   );
 }
