@@ -58,6 +58,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       height: mainHeight / scaleFactor,
       icon,
       show: false,
+      frame: false,
       webPreferences: {
         zoomFactor: 1.0 / scaleFactor,
         nodeIntegration: true,
@@ -65,6 +66,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       }
     });
   
+    mainWindow.setMenu(null);
     mainWindow.loadFile(APP_PATH);
     if (!SILENT_MODE) {
       mainWindow.once("ready-to-show", async () => {
@@ -102,6 +104,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       height: devtoolsHeight / scaleFactor,
       icon,
       show: false,
+      frame: false,
       webPreferences: {
         zoomFactor: 1.0 / scaleFactor
       }

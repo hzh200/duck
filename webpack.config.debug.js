@@ -4,7 +4,7 @@ module.exports = [{
     target: 'electron-renderer',
     mode: 'development',
     entry: {
-        app: './src/app/main.ts',
+        app: './src/app/main.tsx',
     },
     output: {
         path: path.resolve(__dirname, 'build', 'debug'),
