@@ -59,6 +59,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       icon,
       show: false,
       frame: false,
+      transparent: true,
       webPreferences: {
         zoomFactor: 1.0 / scaleFactor,
         nodeIntegration: true,
@@ -104,7 +105,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       height: devtoolsHeight / scaleFactor,
       icon,
       show: false,
-      frame: false,
+      frame: true,
       webPreferences: {
         zoomFactor: 1.0 / scaleFactor
       }
