@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function SidePanel() {
+function TaskInfo() {
   return (
     <div id='side'>
 
@@ -8,4 +8,4 @@ function SidePanel() {
   );
 }
 
-export default SidePanel;
+export default TaskInfo;

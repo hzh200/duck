@@ -2839,6 +2839,7 @@ __metadata:
     file-loader: "npm:^6.2.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    react-resizable-panels: "npm:^2.0.12"
     shadcn-ui: "npm:^0.8.0"
     style-loader: "npm:^3.3.4"
     tailwind-merge: "npm:^2.2.1"
@@ -4873,6 +4874,16 @@ __metadata:
   peerDependencies:
     react: ^18.2.0
   checksum: 10c0/66dfc5f93e13d0674e78ef41f92ed21dfb80f9c4ac4ac25a4b51046d41d4d2186abc915b897f69d3d0ebbffe6184e7c5876f2af26bfa956f179225d921be713a
+  languageName: node
+  linkType: hard
+
+"react-resizable-panels@npm:^2.0.12":
+  version: 2.0.12
+  resolution: "react-resizable-panels@npm:2.0.12"
+  peerDependencies:
+    react: ^16.14.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.14.0 || ^17.0.0 || ^18.0.0
+  checksum: 10c0/f9a07caa33a7f3b0f7c3accc994e138e47fe145012d9e0c641d1c0dc68fe21a1a9d52281956f20469b89b1cb17d160f7ebbe20c460677138f4be96fab09fb8da
   languageName: node
   linkType: hard
 
