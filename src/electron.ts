@@ -220,9 +220,9 @@ try {
   await app.whenReady();
   ({ height: screenHeight, width: screenWidth } = screen.getPrimaryDisplay().size);
   mainHeight = Math.ceil(screenHeight * 0.6);
-  devtoolsHeight = Math.ceil(screenHeight * 0.6);
-  mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.9) * 0.7) : Math.ceil(screenWidth * 0.8);
-  devtoolsWidth = Math.ceil((screenWidth * 0.9) * 0.3);
+  devtoolsHeight = Math.ceil(screenHeight * 0.8);
+  mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.98) * 0.6) : Math.ceil(screenWidth * 0.8);
+  devtoolsWidth = Math.ceil((screenWidth * 0.98) * 0.4);
   scaleFactor = screen.getPrimaryDisplay().scaleFactor;
 
   await launchSystem();

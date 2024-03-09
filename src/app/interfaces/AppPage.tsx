@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import TaskList from '@/interfaces/TaskList';
 import TaskInfo from '@/interfaces/TaskInfo';
 
@@ -10,63 +10,93 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { ArrowDownIcon, GearIcon, MinusIcon, SquareIcon, Cross2Icon } from '@radix-ui/react-icons';
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
+import '@/interfaces/styles/app.css';
 
-import './css/app.css';
+import { Task } from '@/models/Task';
+import TaskStatus from '@/models/TaskStatus';
 
 function AppPage() {
+  const [layout, setLayout] = useState<number[]>([20, 180, 80]);
+  const [tasks, setTasks] = useState<Array<Task>>([{
+    'taskNo': 1,
+    'fileName': 'a',
+    'status': TaskStatus.Successed,
+    'progress': 1,
+    'size': 1
+  }, {
+    'taskNo': 2,
+    'fileName': 'b',
+    'status': TaskStatus.Running,
+    'progress': 66,
+    'size': 100
+  }]);
+
   return (
-    <div id='app'>
-      <div id='frame' className='h-6'>
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="min-h-[200px] max-w-md rounded-lg border h-6"
+    <div id='app' className='h-screen w-full rounded-lg border-solid border-2'>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="min-w-full h-full"
+        onLayout={(sizes: number[]) => {
+          setLayout(sizes);
+        }}
+      >
+        <ResizablePanel 
+          defaultSize={layout[0]}
+          minSize={15}
+          maxSize={20}
         >
-          <ResizablePanel defaultSize={80}>
-            <div className="flex h-full items-center justify-center p-6">
-              <ArrowDownIcon className='h-4 w-4' />
-              <span className="font-semibold">Sidebar</span>
+          <div className='frame h-frame'>
+            <div className="flex items-center h-full">
+              <Badge variant="outline">
+                <ArrowDownIcon className='h-4 w-4' />
+              </Badge>
+              <Label>duck</Label>
             </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={40}>
-            <div className="flex h-full items-center justify-center p-6">
-              <Button variant='ghost' size='icon' className='h-6 w-6'>
+          </div>
+          <div className='main h-main'>
+
+          </div>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel 
+          defaultSize={layout[1]}
+        >
+          <div className='frame h-frame' />
+          <div className='main h-main'>
+            <TaskList tasks={tasks} />
+          </div>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel 
+          defaultSize={layout[2]}
+          minSize={15}
+        >
+          <div className='frame h-frame'>
+            <div className="flex items-center justify-between h-full">
+              <Button variant='ghost' size='icon' className='h-full w-6'>
                 <GearIcon className='h-4 w-4' />
               </Button>
-              <div id='frame-control' className='align-middle h-6'>
-                <Button variant='ghost' size='icon' className='h-6 w-6'>
+              <div id='frame-control' className='flex items-center h-full'>
+                <Button variant='ghost' size='icon' className='h-full w-8'>
                   <MinusIcon className='h-4 w-4' />
                 </Button>
-                <Button variant='ghost' size='icon' className='h-6 w-6'>
-                  <SquareIcon className='h-4 w-4' />
+                <Button variant='ghost' size='icon' className='h-full w-8'>
+                  <SquareIcon className='h-3 w-3' />
                 </Button>
-                <Button variant='ghost' size='icon' className='h-6 w-6'>
+                <Button variant='ghost' size='icon' className='h-full w-8'>
                   <Cross2Icon className='h-4 w-4' />
                 </Button>
               </div>
             </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
-      <div id='main'>
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="min-h-[200px] max-w-md rounded-lg border"
-        >
-          <ResizablePanel defaultSize={25}>
-            <div className="flex h-full items-center justify-center p-6">
-              <TaskList />
-            </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={75}>
-            <div className="flex h-full items-center justify-center p-6">
-              <TaskInfo />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
+          </div>
+          <div className='main h-main'>
+            <TaskInfo />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }
