@@ -17,9 +17,11 @@ import '@/interfaces/styles/app.css';
 
 import { Task } from '@/models/Task';
 import TaskStatus from '@/models/TaskStatus';
+import TaskFilterList from './TaskFilterList';
+import { taskFilters, TaskFilter } from './task-filters';
 
 function AppPage() {
-  const [layout, setLayout] = useState<number[]>([20, 180, 80]);
+  const [layout, setLayout] = useState<number[]>([10, 80, 30]);
   const [tasks, setTasks] = useState<Array<Task>>([{
     'taskNo': 1,
     'fileName': 'a',
@@ -33,6 +35,8 @@ function AppPage() {
     'progress': 66,
     'size': 100
   }]);
+  const [choosenFilter, setChoosenFilter] = useState<TaskFilter>(taskFilters[0]);
+  const [choosenTask, setChoosenTask] = useState<Task | null>(null);
 
   return (
     <div id='app' className='h-screen w-full rounded-lg border-solid border-2'>
@@ -43,11 +47,7 @@ function AppPage() {
           setLayout(sizes);
         }}
       >
-        <ResizablePanel 
-          defaultSize={layout[0]}
-          minSize={15}
-          maxSize={20}
-        >
+        <ResizablePanel defaultSize={layout[0] + layout[1]}>
           <div className='frame h-frame'>
             <div className="flex items-center h-full">
               <Badge variant="outline">
@@ -56,24 +56,28 @@ function AppPage() {
               <Label>duck</Label>
             </div>
           </div>
-          <div className='main h-main'>
-
-          </div>
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="min-w-full h-full"
+            onLayout={(sizes: number[]) => {
+              setLayout(sizes);
+            }}
+          >
+            <ResizablePanel defaultSize={layout[1]} minSize={10} maxSize={10}>
+              <div className='main h-main'>
+                <TaskFilterList choosen={choosenFilter} setChoosen={setChoosenFilter} />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle />
+            <ResizablePanel defaultSize={layout[1]}>
+              <div className='main h-main'>
+                <TaskList tasks={tasks} />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel 
-          defaultSize={layout[1]}
-        >
-          <div className='frame h-frame' />
-          <div className='main h-main'>
-            <TaskList tasks={tasks} />
-          </div>
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel 
-          defaultSize={layout[2]}
-          minSize={15}
-        >
+        <ResizablePanel defaultSize={layout[2]} minSize={15} maxSize={30}>
           <div className='frame h-frame'>
             <div className="flex items-center justify-between h-full">
               <Button variant='ghost' size='icon' className='h-full w-6'>
@@ -93,7 +97,7 @@ function AppPage() {
             </div>
           </div>
           <div className='main h-main'>
-            <TaskInfo />
+            <TaskInfo task={choosenTask} />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

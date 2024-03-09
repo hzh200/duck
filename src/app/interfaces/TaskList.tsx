@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 
 import { Task } from '@/models/Task';
-import { columns, ColumnItem } from '@/interfaces/TaskList/TableColumns';
+import { taskTableColumns, TaskTableColumn } from '@/interfaces/task-table-columns';
 
 import '@/interfaces/styles/task-list.css';
 
@@ -24,18 +24,18 @@ function TaskList({ tasks }: TaskListProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          {columns.map((column, index) => (
-            <TableHead key={index} className={column.classes ? column.classes?.join(' ') : ''}>
+          {taskTableColumns.map((column, index) => (
+            <TableHead key={index} className={column.classes ? column.classes.join(' ') : ''}>
               {column.title}
             </TableHead>
           ))}
         </TableRow>
       </TableHeader>
-      <TableBody className='overflow-scroll'>
+      <TableBody className='scroll'>
         {tasks.map((task, index) => (
           <TableRow key={index}>
-            {columns.map((column, index) => (
-              <TableCell key={index} className={column.classes ? column.classes?.join(' ') : ''}>
+            {taskTableColumns.map((column: TaskTableColumn, index) => (
+              <TableCell key={index} className={column.classes ? column.classes.join(' ') : ''}>
                 {(() => {
                   const value = (task as any)[column.accessorKey];
                   if (value !== (null || undefined)) {

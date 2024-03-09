@@ -1,5 +1,6 @@
 enum TaskStatus {
-    Runable,
+    All, // For filter only.
+    Waiting,
     Running,
     Stopped,
     Successed,

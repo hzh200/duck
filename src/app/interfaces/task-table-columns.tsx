@@ -5,14 +5,14 @@ import TaskStatus from "@/models/TaskStatus";
 import { Progress } from "@/components/ui/progress";
 import { CheckIcon, ClockIcon, Cross2Icon } from "@radix-ui/react-icons";
 
-interface ColumnItem {
+interface TaskTableColumn {
     title: string,
     accessorKey: string,
     classes?: Array<string>
     convertor?: (value :any, task: Task) => any,
 }
 
-const columns: Array<ColumnItem> = [
+const taskTableColumns: Array<TaskTableColumn> = [
     {
         'title': 'FileName',
         'accessorKey': 'fileName',
@@ -28,9 +28,9 @@ const columns: Array<ColumnItem> = [
             status === TaskStatus.Running ? <Progress value={
                 'progress' in task && 'size' in task ? Math.floor(task['progress'] * 100 / task['size']) : 0
             } /> :
-            status === TaskStatus.Runable ? <ClockIcon className='h-4 w-4' /> :
+            status === TaskStatus.Waiting ? <ClockIcon className='h-4 w-4' /> :
             status === TaskStatus.Failed ? <Cross2Icon className='h-4 w-4' /> : <span /> 
     }
 ];
 
-export { columns, ColumnItem };
+export { taskTableColumns, TaskTableColumn };
