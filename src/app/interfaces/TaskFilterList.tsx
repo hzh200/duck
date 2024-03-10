@@ -4,7 +4,7 @@ import { Task } from '@/models/Task';
 
 import '@/interfaces/styles/task-list.css';
 import TaskStatus from '@/models/TaskStatus';
-import { TaskFilter, taskFilters } from './task-filters';
+import { TaskFilter, taskFilters } from '../lib/task-filters';
 import { cn } from '@/lib/utils';
 
 interface TaskFilterProps {

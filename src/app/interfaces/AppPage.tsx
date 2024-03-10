@@ -19,7 +19,7 @@ import '@/interfaces/styles/app.css';
 import { Task } from '@/models/Task';
 import TaskStatus from '@/models/TaskStatus';
 import TaskFilterList from './TaskFilterList';
-import { taskFilters, TaskFilter } from './task-filters';
+import { taskFilters, TaskFilter } from '../lib/task-filters';
 
 function AppPage() {
   const [layout, setLayout] = useState<number[]>([10, 80, 30]);
