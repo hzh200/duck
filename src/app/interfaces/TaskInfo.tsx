@@ -9,11 +9,11 @@ import '@/interfaces/styles/task-info.css';
 import { Task } from '@/models/Task';
 
 interface TaskInfoProps {
-  task: Task | null
+  task: Task | undefined
 }
 
 function TaskInfo({ task }: TaskInfoProps) {
-  if (task === null) {
+  if (!task) {
     return <div></div>
   }
   

@@ -1,7 +1,7 @@
-import { app, BrowserWindow, Event, screen, Tray, Menu, nativeImage } from 'electron';
-import { resolve, basename } from 'node:path';
+import { app, BrowserWindow, Event, screen, Tray, Menu, nativeImage, ipcMain } from 'electron';
+import path, { resolve, basename } from 'node:path';
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
-import { setConsoleMode, Log } from './utils/Log';
+import { setConsoleMode, Log } from './utils/log';
 
 const ICON_PATH = resolve(__dirname, '../../asset/favicon.ico');
 const EXE_NAME = basename(process.execPath);
@@ -36,21 +36,6 @@ const globalSetting = {
   closeToTray: true
 };
 
-if (globalSetting.launchOnStartup) {
-  app.setLoginItemSettings({
-    openAtLogin: true,
-    path: process.execPath,
-    args: [
-      '--processStart', `"${EXE_NAME}"`,
-      '--process-start-args', '"--start-mode=silent"'
-    ]
-  });
-} else {
-  app.setLoginItemSettings({ openAtLogin: false });
-}
-
-setConsoleMode(DEV_MODE);
-
 const launchAPP = () => new Promise<void>((resolve, _reject) => {
   const initMainWindow = () => {
     mainWindow = new BrowserWindow({
@@ -62,8 +47,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       transparent: true,
       webPreferences: {
         zoomFactor: 1.0 / scaleFactor,
-        nodeIntegration: true,
-        contextIsolation: false,
+        preload: path.resolve(__dirname, 'preload.js')
       }
     });
   
@@ -121,6 +105,16 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
         devtoolsWindow.close();
       }
     });
+    mainWindow.addListener('minimize', (_event: Event) => {
+      if (devtoolsWindow && !devtoolsWindow.isDestroyed() && devtoolsWindow.minimizable) {
+        devtoolsWindow.minimize();
+      }
+    });
+    // mainWindow.addListener('maximize', (_event: Event) => {
+    //   if (!devtoolsWindow.isDestroyed() && devtoolsWindow.maximizable) {
+    //     devtoolsWindow.maximize();
+    //   }
+    // });
 
     positionMain();
     positionDevTools();
@@ -218,12 +212,28 @@ if (!app.requestSingleInstanceLock()) {
 
 try {
   await app.whenReady();
+  setConsoleMode(DEV_MODE);
+  
   ({ height: screenHeight, width: screenWidth } = screen.getPrimaryDisplay().size);
   mainHeight = Math.ceil(screenHeight * 0.6);
   devtoolsHeight = Math.ceil(screenHeight * 0.8);
   mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.98) * 0.6) : Math.ceil(screenWidth * 0.8);
   devtoolsWidth = Math.ceil((screenWidth * 0.98) * 0.4);
   scaleFactor = screen.getPrimaryDisplay().scaleFactor;
+
+  
+  if (globalSetting.launchOnStartup) {
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      path: process.execPath,
+      args: [
+        '--processStart', `"${EXE_NAME}"`,
+        '--process-start-args', '"--start-mode=silent"'
+      ]
+    });
+  } else {
+    app.setLoginItemSettings({ openAtLogin: false });
+  }
 
   await launchSystem();
   
@@ -236,6 +246,22 @@ try {
     } else {
       event.preventDefault();
       await shutdownSystem();
+    }
+  });
+
+  ipcMain.handle('minimize', () => {
+    if (mainWindow && mainWindow.minimizable) {
+      mainWindow.minimize();
+    }
+  });
+  ipcMain.handle('maximize', () => {
+    if (mainWindow && mainWindow.maximizable) {
+      mainWindow.maximize();
+    }
+  });
+  ipcMain.handle('close', () => {
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.close();
     }
   });
 } catch (err) {

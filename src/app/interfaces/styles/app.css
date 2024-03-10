@@ -4,8 +4,13 @@
 }
 
 .frame {
-    -webkit-app-region: drag;
+    display: flex;
     background-color: azure;
+}
+
+.frame > .drag {
+    width: -webkit-fill-available;
+    -webkit-app-region: drag;
 }
 
 /* scroll bar */
