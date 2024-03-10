@@ -6,35 +6,19 @@ interface TaskFilter {
     filter: (tasks: Array<Task>) => Array<Task>
 }
 
-const taskFilters: Array<TaskFilter> = [
-    {
-        name: 'All',
-        filter: (tasks: Array<Task>) => tasks.filter(task => task.status)
-    },
-    {
-        name: 'Waiting',
-        filter: (tasks: Array<Task>) => tasks.filter(task => task.status === TaskStatus.Waiting)
-    },
-    {
-        name: 'Running',
-        filter: (tasks: Array<Task>) => tasks.filter(task => task.status === TaskStatus.Running)
-    },
-    {
-        name: 'Paused',
-        filter: (tasks: Array<Task>) => tasks.filter(task => task.status === TaskStatus.Paused)
-    },
-    {
-        name: 'Stopped',
-        filter: (tasks: Array<Task>) => tasks.filter(task => task.status === TaskStatus.Stopped)
-    },
-    {
-        name: 'Successed',
-        filter: (tasks: Array<Task>) => tasks.filter(task => task.status === TaskStatus.Successed)
-    },
-    {
-        name: 'Failed',
-        filter: (tasks: Array<Task>) => tasks.filter(task => task.status === TaskStatus.Failed)
-    }
-];
+const taskFilters: Array<TaskFilter> = [{
+    name: 'All',
+    filter: (tasks: Array<Task>) => tasks.filter(task => task.status)
+}];
+
+const values = Object.values(TaskStatus).filter(v => !isNaN(Number(v)));
+const keys = Object.values(TaskStatus).filter(v => isNaN(Number(v)));
+
+for (let i = 0; i < values.length; i++) {
+    taskFilters.push({
+        name: keys[i].toString(),
+        filter: (tasks: Array<Task>) => tasks.filter(task => task.status === values[i])
+    });
+}
 
 export { taskFilters, TaskFilter };

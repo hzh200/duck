@@ -67,13 +67,13 @@ function AppPage() {
               }}
             >
               <ResizablePanel defaultSize={layout[1]} minSize={10} maxSize={10}>
-                <div className='main h-main'>
+                <div className='main h-main p-2'>
                   <TaskFilterList choosen={choosenFilter} setChoosen={setChoosenFilter} />
                 </div>
               </ResizablePanel>
               <ResizableHandle />
               <ResizablePanel defaultSize={layout[1]}>
-                <div className='main h-main'>
+                <div className='main h-main p-5'>
                   <TaskList 
                     tasks={choosenFilter.filter(tasks)} 
                     choosen={choosenTaskNos.filter(taskNo => choosenFilter.filter(tasks).some(task => task.taskNo === taskNo))} 
@@ -101,7 +101,7 @@ function AppPage() {
                 </Button>
               </div>
             </div>
-            <div className='main h-main'>
+            <div className='main h-main p-5'>
               <TaskInfo task={tasks.find(task => task.taskNo === choosenTaskNos[choosenTaskNos.length - 1])} />
             </div>
           </ResizablePanel>
