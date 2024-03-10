@@ -6,6 +6,7 @@
 .frame {
     display: flex;
     background-color: azure;
+    padding-left: 3px;
 }
 
 .frame > .drag {

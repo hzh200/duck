@@ -85,8 +85,8 @@ function AppPage() {
           <ResizableHandle />
           <ResizablePanel defaultSize={layout[2]} minSize={15} maxSize={30}>
             <div className='frame h-frame'>
-              <Button variant='ghost' size='icon' className='h-full w-6'>
-                <GearIcon className='h-4 w-4' />
+              <Button variant='ghost' size='icon' className='h-full w-8'>
+                <GearIcon className='h-5 w-5' />
               </Button>
               <div className='drag' />
               <div id='frame-control' className='flex items-center h-full'>
