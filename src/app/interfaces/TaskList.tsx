@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { Task } from '@/models/Task';
-import { taskTableColumns, TaskTableColumn } from '@/interfaces/task-table-columns';
+import { taskTableColumns, TaskTableColumn } from '@/lib/task-table-columns';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
