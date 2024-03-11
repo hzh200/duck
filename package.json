@@ -22,6 +22,7 @@
     "css-loader": "^6.10.0",
     "electron": "^29.0.1",
     "file-loader": "^6.2.0",
+    "javascript-obfuscator": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "shadcn-ui": "^0.8.0",
@@ -33,7 +34,8 @@
     "typescript": "^5.3.3",
     "webpack": "^5.90.3",
     "webpack-cli": "^5.1.4",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "webpack-obfuscator": "^3.5.1"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.0.2",
