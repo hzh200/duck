@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "removeComments": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "moduleResolution": "Bundler",
+    "jsx": "react",
+    "allowJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/app/*"]
+    }
+  },
+  "include": ["src"]
+}

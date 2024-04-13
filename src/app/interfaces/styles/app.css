@@ -1,0 +1,45 @@
+* {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.frame {
+    display: flex;
+    background-color: azure;
+    padding-left: 3px;
+}
+
+.frame > .drag {
+    width: -webkit-fill-available;
+    -webkit-app-region: drag;
+}
+
+/* scroll bar */
+.scroll {
+    overflow-y: scroll;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+    border-radius: 20px;
+}
+
+.scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+/* tracking area */
+.scroll::-webkit-scrollbar-track {
+    background: rgb(249, 249, 249);   
+}
+      
+/* scroll thumb */    
+.scroll::-webkit-scrollbar-thumb {
+    background-color: rgb(249, 249, 249); 
+}
+
+/* blend thumb in tracking area with using the same color */
+.scroll:hover::-webkit-scrollbar-thumb, 
+.scroll:active::-webkit-scrollbar-thumb, 
+.scroll:focus::-webkit-scrollbar-thumb {
+    background-color: rgb(233, 233, 233); 
+}
