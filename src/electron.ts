@@ -3,39 +3,63 @@ import path, { resolve, basename } from 'node:path';
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
 import { setConsoleMode, Log } from './utils/log';
 
+// External resource paths.
 const ICON_PATH = resolve(__dirname, '../../asset/favicon.ico');
 const EXE_NAME = basename(process.execPath);
 const SOFTWARE_NAME = '';
-
 const APP_PATH = resolve(__dirname, './index.html');
 const KERNEL_PATH = resolve(__dirname, './kernel');
 const KERNEL_PORT = app.commandLine.getSwitchValue('port') !== '' && !isNaN(parseInt(app.commandLine.getSwitchValue('port'))) ? parseInt(app.commandLine.getSwitchValue('port')) : 9000;
-
 const DB_PATH = resolve(__dirname, './duck.db')
 
+// System config.
 const DEV_MODE: boolean = process.env.NODE_ENV === 'development';
 const SILENT_MODE = app.commandLine.getSwitchValue('start-mode') === 'silent';
 
+// System setting.
+const globalSetting = {
+  launchOnStartup: false,
+  closeToTray: true
+};
+
+// System resources.
 let tray!: Tray;
 let mainWindow!: BrowserWindow;
 let devtoolsWindow!: BrowserWindow;
 let kernel!: ChildProcessWithoutNullStreams;
-
 const icon = nativeImage.createFromPath(ICON_PATH);
 
 let appTerminating = false;
 
-let screenWidth: number;
-let screenHeight: number;
-let mainHeight: number;
-let mainWidth: number;
-let devtoolsHeight: number;
-let devtoolsWidth: number;
+// Interface parameters.
+let [screenWidth, screenHeight]: [number, number] = [0, 0];
+let [mainWidth, mainHeight]: [number, number] = [0, 0];
+let [devtoolsWidth, devtoolsHeight]: [number, number] = [0, 0];
+let [mainX, mainY]: [number, number] = [0, 0];
+let [devtoolsX, devtoolsY]: [number, number] = [0, 0];
+let [xBeforeMaximization, yBeforeMaximization]: [number, number] = [0, 0];
+let [widthBeforeMaximization, heightBeforeMaximization]: [number, number] = [0, 0];
 let scaleFactor: number;
 
-const globalSetting = {
-  launchOnStartup: false,
-  closeToTray: true
+const positionMain = (x: number, y: number) => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  mainWindow.setPosition(x, y);
+};
+
+const positionDevTools = (x: number, y: number) => {
+  if (!devtoolsWindow || devtoolsWindow.isDestroyed()) {
+    return;
+  }
+  devtoolsWindow.setPosition(x, y);
+};
+
+const resizeMain = (width: number, height: number) => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  mainWindow.setSize(width, height);
 };
 
 const launchAPP = () => new Promise<void>((resolve, _reject) => {
@@ -55,34 +79,24 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
   
     mainWindow.setMenu(null);
     mainWindow.loadFile(APP_PATH);
+
     if (!SILENT_MODE) {
       mainWindow.once("ready-to-show", async () => {
+        mainWindow.show();
         if (DEV_MODE) {
           await initDevToolsWindow();
         }
-        mainWindow.show();
         resolve();
       });
     }
-  };
 
-  const positionDevTools = () => { // Put the DevTools window at the right side of the main window.
-    if (devtoolsWindow.isDestroyed()) {
-      return;
-    }
-    const windowBounds = mainWindow.getBounds();
-    devtoolsWindow.setPosition(windowBounds.x + windowBounds.width, windowBounds.y);
-  };
+    mainWindow.addListener("move", () => {
+      ({x: mainX, y: mainY} = mainWindow.getBounds());
+    });
 
-  const positionMain = () => {
-    if (mainWindow.isDestroyed()) {
-      return;
-    }
-    const mainSize = mainWindow.getSize();
-    const devtoolSize = devtoolsWindow.isDestroyed() ? [0, 0] : devtoolsWindow.getSize();
-    const x = (screenWidth - mainSize[0] - devtoolSize[0]) / 2;
-    const y = (screenHeight - Math.max(mainSize[1], devtoolSize[1])) / 2;
-    mainWindow.setPosition(Math.floor(x), Math.floor(y));
+    mainWindow.addListener("resize", () => {
+      ({width: mainWidth, height: mainHeight} = mainWindow.getBounds());
+    });
   };
 
   const initDevToolsWindow = (): Promise<void> => {
@@ -96,30 +110,42 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
         zoomFactor: 1.0 / scaleFactor
       }
     });
+
     devtoolsWindow.setMenu(null);
     mainWindow.webContents.setDevToolsWebContents(devtoolsWindow.webContents);
     mainWindow.webContents.openDevTools({ mode: 'detach' });
  
-    devtoolsWindow.addListener('closed', positionMain);
-    mainWindow.addListener('move', positionDevTools);
+    devtoolsWindow.addListener('closed', () => {
+      mainX = Math.floor((screenWidth - mainWidth) / 2);
+      mainY = Math.floor((screenHeight - mainHeight) / 2);
+      positionMain(mainX, mainY);
+    });
+
+    mainWindow.addListener('move', () => {
+      devtoolsX = mainX + mainWidth;
+      devtoolsY = mainY;
+      positionDevTools(devtoolsX, devtoolsY);
+    });
+
+    mainWindow.addListener("resize", () => {
+      devtoolsX = mainX + mainWidth;
+      devtoolsY = mainY;
+      positionDevTools(devtoolsX, devtoolsY);
+    });
+
     mainWindow.addListener('close', (_event: Event) => {
       if (!devtoolsWindow.isDestroyed()) {
         devtoolsWindow.close();
       }
     });
-    mainWindow.addListener('minimize', (_event: Event) => {
-      if (devtoolsWindow && !devtoolsWindow.isDestroyed() && devtoolsWindow.minimizable) {
-        devtoolsWindow.minimize();
-      }
-    });
-    // mainWindow.addListener('maximize', (_event: Event) => {
-    //   if (!devtoolsWindow.isDestroyed() && devtoolsWindow.maximizable) {
-    //     devtoolsWindow.maximize();
-    //   }
-    // });
 
-    positionMain();
-    positionDevTools();
+    // mainWindow maximize and minimize event can't be triggered here
+    // mainWindow.on('minimize', (_event: Event) => {});
+    // mainWindow.on('maximize', (_event: Event) => {});
+    // mainWindow.on('unmaximize', (_event: Event) => {});
+
+    positionMain(mainX, mainY);
+    positionDevTools(devtoolsX, devtoolsY);
   
     return new Promise((resolve) => {
       devtoolsWindow.on('ready-to-show', () => {
@@ -223,14 +249,25 @@ try {
   await app.whenReady();
   setConsoleMode(DEV_MODE);
   
-  ({ height: screenHeight, width: screenWidth } = screen.getPrimaryDisplay().size);
-  mainHeight = Math.ceil(screenHeight * 0.6);
-  devtoolsHeight = Math.ceil(screenHeight * 0.8);
-  mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.98) * 0.6) : Math.ceil(screenWidth * 0.8);
-  devtoolsWidth = Math.ceil((screenWidth * 0.98) * 0.4);
-  scaleFactor = screen.getPrimaryDisplay().scaleFactor;
+  const screenInfo = screen.getPrimaryDisplay();
 
-  
+  ({ width: screenWidth, height: screenHeight } = screenInfo.size);
+  mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.98) * 0.6) : Math.ceil(screenWidth * 0.8);
+  mainHeight = Math.ceil(screenHeight * 0.6);
+  devtoolsWidth = Math.ceil((screenWidth * 0.98) * 0.4);
+  devtoolsHeight = Math.ceil(screenHeight * 0.8);
+  // Defaultly, put mainWindow on the center of the screen, if in dev mode, put mainWindow and devWindow together on the center of the screen.
+  mainX = Math.floor((screenWidth - mainWidth) / 2);
+  if (DEV_MODE) {
+    mainX = Math.floor(mainX - devtoolsWidth / 2);
+  }
+  mainY = Math.floor((screenHeight - (DEV_MODE ? Math.max(mainHeight, devtoolsHeight) : mainHeight)) / 2);
+  // Put the DevTools window at the right side of the main window.
+  devtoolsX = mainX + mainWidth;
+  devtoolsY = mainY;
+
+  scaleFactor = screenInfo.scaleFactor;
+
   if (globalSetting.launchOnStartup) {
     app.setLoginItemSettings({
       openAtLogin: true,
@@ -259,13 +296,39 @@ try {
   });
 
   ipcMain.handle('minimize', () => {
-    if (mainWindow && mainWindow.minimizable) {
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.minimizable) {
       mainWindow.minimize();
+      // if (devtoolsWindow && !devtoolsWindow.isDestroyed()) {
+      //   // Not working.
+      //   mainWindow.addListener("restore", devtoolsWindow.show);
+      //   devtoolsWindow.hide();
+      //   // Would cause error.
+      //   devtoolsWindow.minimize();
+      // }
     }
   });
   ipcMain.handle('maximize', () => {
-    if (mainWindow && mainWindow.maximizable) {
-      mainWindow.maximize();
+    // if (mainWindow && !mainWindow.isDestroyed() && mainWindow.maximizable) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      // mainWindow.maximize();
+      [xBeforeMaximization, yBeforeMaximization] = [mainX, mainY];
+      [widthBeforeMaximization, heightBeforeMaximization] = [mainWidth, mainHeight];
+      positionMain(0, 0);
+      resizeMain(screenWidth, screenHeight);
+      if (devtoolsWindow && !devtoolsWindow.isDestroyed() && devtoolsWindow.isVisible()) {
+        devtoolsWindow.hide();
+      }
+    }
+  });
+  ipcMain.handle('unmaximize', () => {
+    // if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isMaximized()) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      // mainWindow.unmaximize();
+      positionMain(xBeforeMaximization, yBeforeMaximization);
+      resizeMain(widthBeforeMaximization, heightBeforeMaximization);
+      if (devtoolsWindow && !devtoolsWindow.isDestroyed() && !devtoolsWindow.isVisible()) {
+        devtoolsWindow.show();
+      }
     }
   });
   ipcMain.handle('close', () => {

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/resizable';
 
 import { Button } from '@/components/ui/button';
-import { ArrowDownIcon, GearIcon, MinusIcon, SquareIcon, Cross2Icon } from '@radix-ui/react-icons';
+import { ArrowDownIcon, GearIcon, MinusIcon, SquareIcon, Cross2Icon, CopyIcon } from '@radix-ui/react-icons';
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +22,7 @@ import TaskFilterList from './TaskFilterList';
 import { taskFilters, TaskFilter } from '../lib/task-filters';
 
 function AppPage() {
+  const [isWindowMaximized, setIsWindowMaximized] = useState<boolean>(false);
   const [layout, setLayout] = useState<number[]>([10, 80, 30]);
   const [tasks, setTasks] = useState<Array<Task>>([{
     'taskNo': 1,
@@ -38,7 +39,7 @@ function AppPage() {
   }]);
   const [choosenFilter, setChoosenFilter] = useState<TaskFilter>(taskFilters[0]);
   const [choosenTaskNos, setChoosenTaskNos] = useState<Array<number>>([]);
-
+  
   return (
     <div id='app' className='h-screen w-full rounded-lg border-solid border-2'>
       <TooltipProvider delayDuration={500}>
@@ -90,13 +91,20 @@ function AppPage() {
               </Button>
               <div className='drag' />
               <div id='frame-control' className='flex items-center h-full'>
-                <Button variant='ghost' size='icon' className='h-full w-8' onClick={(window as any).control.minimize}>
+                <Button variant='ghost' size='icon' className='h-full w-12' onClick={(window as any).control.minimize}>
                   <MinusIcon className='h-4 w-4' />
                 </Button>
-                <Button variant='ghost' size='icon' className='h-full w-8' onClick={(window as any).control.maximize}>
-                  <SquareIcon className='h-3 w-3' />
+                <Button variant='ghost' size='icon' className='h-full w-12' onClick={() => {
+                  if (isWindowMaximized) {
+                    (window as any).control.unmaximize()
+                  } else {
+                    (window as any).control.maximize()
+                  }
+                  setIsWindowMaximized(!isWindowMaximized);
+                }}>
+                  { isWindowMaximized ? <CopyIcon className='transform -scale-x-100 h-3 w-3' /> : <SquareIcon className='h-3 w-3' /> }
                 </Button>
-                <Button variant='ghost' size='icon' className='h-full w-8' onClick={(window as any).control.close}>
+                <Button variant='ghost' size='icon' className='h-full w-12' onClick={(window as any).control.close}>
                   <Cross2Icon className='h-4 w-4' />
                 </Button>
               </div>
