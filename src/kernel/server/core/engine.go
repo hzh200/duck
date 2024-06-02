@@ -41,6 +41,6 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	(*handler)(&context)
 }
 
-func (engine *Engine) Start() error {
+func (engine *Engine) Run() error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", int(engine.port)), engine)
 }

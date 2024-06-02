@@ -19,25 +19,23 @@ func main() {
 	config, err := parseArgs()
 
 	if err != nil {
-		
+		fmt.Fprintln(os.Stderr, err.Error())
 	}
 
 	if config.devMode {
 		fmt.Println("Running under development mode.")
 	}
 
-	conn, err := persistence.InitConnection(config.dbPath)
+	err = persistence.StartManager(config.dbPath)
 
 	if err != nil {
-		
+		fmt.Fprintln(os.Stderr, err.Error())
 	}
 
-	conn.Close()
-
-	err = server.Run(config.port)
+	err = server.StartServer(config.port)
 
 	if err != nil {
-		
+		fmt.Fprintln(os.Stderr, err.Error())
 	}
 }
 
