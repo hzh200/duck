@@ -1,17 +1,25 @@
 package dialects
 
 import (
-	"duck/kernel/persistence/core"
 	"reflect"
 	"strings"
 )
 
 type sqlite3 struct {}
 
-var _ core.Dialect = &sqlite3{}
+var _ Dialect = &sqlite3{}
 
 func init() {
-	core.RegisterDialect("sqlite3", &sqlite3{})
+	RegisterDialect("sqlite3", &sqlite3{})
+}
+
+// sqlite_master
+type SQLiteTableInfo struct {
+	Typ string
+	Name string
+	TblName string
+	Rootpage int
+	Sql string
 }
 
 func (s *sqlite3) DataTypeMapping(fieldType reflect.Type) string {

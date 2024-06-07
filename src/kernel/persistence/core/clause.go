@@ -33,14 +33,14 @@ func init() {
 func createClauseFunction(params []interface{}) string {
 	schema := params[0].(*Schema)
 	template := strings.Builder{}
-	template.WriteString(fmt.Sprintf("CREATE TABLE %s (", schema.StructName))
+	template.WriteString(fmt.Sprintf("CREATE TABLE %s (", schema.TableName))
 	for i, field := range schema.Fields {
 		template.WriteString(fmt.Sprintf("%s %s", field.FieldName, field.FieldType))
 		if field.Constraints != "" {
 			template.WriteString(fmt.Sprintf(" %s", field.Constraints))
 		}
 		if i != len(schema.Fields) - 1 {
-			template.WriteString(",")
+			template.WriteString(", ")
 		}
 		template.WriteString("")
 	}
@@ -51,22 +51,26 @@ func createClauseFunction(params []interface{}) string {
 func selectClauseFunction(params []interface{}) string {
 	schema := params[0].(*Schema)
 	template := strings.Builder{}
-	template.WriteString(fmt.Sprintf("SELECT * FROM %s;", schema.StructName))
+	template.WriteString(fmt.Sprintf("SELECT * FROM %s;", schema.TableName))
 	return template.String()
 }
 
 func insertClauseFunction(params []interface{}) string {
 	schema := params[0].(*Schema)
-	valueMap := params[0].(map[reflect.Type]interface{})
+	valueMap := params[1].(map[reflect.Type]interface{})
 	template := strings.Builder{}
 	insertValues := make([]string, len(schema.Fields))
 	for i, field := range schema.Fields {
-		insertValues[i] = valueMap[field.MemberType].(string)
+		if reflect.TypeOf(valueMap[field.MemberType]).Kind() == reflect.String {
+			insertValues[i] = fmt.Sprintf("'%s'", valueMap[field.MemberType])
+		} else {
+			insertValues[i] = fmt.Sprintf("%v", valueMap[field.MemberType])
+		}
 	}
 	insertFields := make([]string, 0)
 	for _, field := range schema.Fields {
 		insertFields = append(insertFields, field.FieldName)
 	}
-	template.WriteString(fmt.Sprintf("INSERT INTO %s(%s) VALUES(%s)", schema.StructName, strings.Join(insertFields, ","), strings.Join(insertValues, ",")))
+	template.WriteString(fmt.Sprintf("INSERT INTO %s(%s) VALUES(%s);", schema.TableName, strings.Join(insertFields, ","), strings.Join(insertValues, ", ")))
 	return template.String()
 }

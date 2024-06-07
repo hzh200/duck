@@ -25,3 +25,8 @@ debug-run-kernel: debug-build-kernel
 debug-run: debug-build
 	export NODE_ENV=development 
 	yarn electron . --enable-logging --inspect
+
+.PHONY: test
+test: 
+	cd src/kernel && go test duck/kernel/server/...
+	cd src/kernel && go test duck/kernel/persistence/...

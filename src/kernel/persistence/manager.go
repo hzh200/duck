@@ -25,11 +25,12 @@ func StartManager(dbPath string) error {
 }
 
 func (manager *Manager) GetAllTasks() ([]models.Task, error) {
-	tasks, err := manager.engine.Select(models.Task{})
+	var tasks []models.Task
+	err := manager.engine.Select(tasks)
 	if err != nil {
 		return nil, err
 	}
-	return tasks.([]models.Task), nil
+	return tasks, nil
 }
 
 func (manager *Manager) AddTask(task models.Task) {
@@ -45,11 +46,12 @@ func (manager *Manager) RemoveTask() {
 }
 
 func (manager *Manager) GetAllTaskSets() ([]models.TaskSet, error) {
-	taskSets, err := manager.engine.Select(models.TaskSet{})
+	var taskSets []models.TaskSet
+	err := manager.engine.Select(taskSets)
 	if err != nil {
 		return nil, err
 	}
-	return taskSets.([]models.TaskSet), nil
+	return taskSets, nil
 }
 
 func (manager *Manager) AddTaskSet(taskSet models.TaskSet) {

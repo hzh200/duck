@@ -1,6 +1,7 @@
 package core
 
 import (
+	"duck/kernel/persistence/core/dialects"
 	"reflect"
 	"strings"
 )
@@ -20,9 +21,8 @@ type Schema struct {
 	Fields []Field	
 } 
 
-func Parse(model interface{}, dialect Dialect) *Schema {
+func Parse(modelType reflect.Type, dialect dialects.Dialect) *Schema {
 	schema := Schema{}
-	modelType := reflect.TypeOf(model)
 	schema.ModelType = modelType
 	schema.StructName = modelType.Name()
 	schema.TableName = toLowerCase(schema.StructName)
