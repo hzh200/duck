@@ -73,17 +73,31 @@
 @layer base {
   * {
     @apply border-border;
+    @apply rounded-lg;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   .h-frame {
-    @apply h-8
+    @apply h-11
   }
 
-  .h-main {
-    height: calc(100vh - theme('spacing.6'));
+  .h-body {
+    height: calc(100vh - theme('spacing.11') - 2px);
+  }
+
+  .w-nav {
+    @apply w-14
+  }
+
+  .w-main {
+    width: -webkit-fill-available;
+  }
+
+  .h-control {
+    @apply h-12
   }
 }

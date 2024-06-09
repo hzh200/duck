@@ -1,10 +1,6 @@
 import React from 'react';
 
-import { Separator } from "@/components/ui/separator"
-
-import { cn } from "@/lib/utils";
-
-import '@/interfaces/styles/task-info.css';
+import { Separator } from "@/components/ui/separator";
 import { Task } from '@/models/Task';
 
 interface TaskInfoProps {
@@ -17,7 +13,7 @@ function TaskInfo({ task }: TaskInfoProps) {
   }
   
   return (
-    <div>
+    <div className='h-full'>
       <span>{task.fileName}</span>
       <Separator />
     </div>

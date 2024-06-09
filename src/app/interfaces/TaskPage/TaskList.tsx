@@ -9,20 +9,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
 import { Task } from '@/models/Task';
 import { taskTableColumns, TaskTableColumn } from '@/lib/task-table-columns';
 import { cn } from '@/lib/utils';
-
-import { Button } from '@/components/ui/button';
-
-import '@/interfaces/styles/task-list.css';
-import { PauseIcon, PlayIcon, ResumeIcon, StopIcon, TrashIcon } from '@radix-ui/react-icons';
 
 interface TaskListProps {
   tasks: Array<Task>
@@ -32,49 +21,7 @@ interface TaskListProps {
 
 function TaskList({ tasks, choosen, setChoosen }: TaskListProps) {
   return (
-    <div>
-      <div id='task-control' className='flex items-center h-10 w-full'>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='ghost' size='icon' className='h-full w-10'>
-              <PlayIcon className='h-6 w-6' />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top'>Start</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='ghost' size='icon' className='h-full w-10'>
-              <PauseIcon className='h-6 w-6' />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top'>Pause</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='ghost' size='icon' className='h-full w-10'>
-              <ResumeIcon className='h-6 w-6' />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top'>Resume</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='ghost' size='icon' className='h-full w-10'>
-              <StopIcon className='h-6 w-6' />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top'>Stop</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='ghost' size='icon' className='h-full w-10'>
-              <TrashIcon className='h-6 w-6' />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top'>Delete</TooltipContent>
-        </Tooltip>
-      </div>
+    <div className='h-full'>
       <Table>
         <TableHeader>
           <TableRow>

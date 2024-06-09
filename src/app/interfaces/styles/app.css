@@ -3,15 +3,17 @@
     user-select: none;
 }
 
-.frame {
-    display: flex;
-    background-color: azure;
-    padding-left: 3px;
-}
-
-.frame > .drag {
+.drag {
     width: -webkit-fill-available;
     -webkit-app-region: drag;
+}
+
+.choosen {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left-color: darkgray;
+    border-left-width: 2px;
+    background-color: rgb(245 245 245);
 }
 
 /* scroll bar */
