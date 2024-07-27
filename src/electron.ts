@@ -2,18 +2,30 @@ import { app, BrowserWindow, Event, screen, Tray, Menu, nativeImage, ipcMain } f
 import path, { resolve, basename } from 'node:path';
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
 import { setConsoleMode, Log } from './utils/log';
+import os from 'node:os';
+import { exit } from 'node:process';
+
+// Running environment.
+let platform = ""
+if (os.type() == 'Windows_NT') {
+  platform = "windows";
+} else if (os.type() == 'Linux') {
+  platform = "linux";
+} else {
+  exit();
+}
 
 // External resource paths.
 const ICON_PATH = resolve(__dirname, '../../asset/favicon.ico');
 const EXE_NAME = basename(process.execPath);
 const SOFTWARE_NAME = '';
 const APP_PATH = resolve(__dirname, './index.html');
-const KERNEL_PATH = resolve(__dirname, './kernel');
+const KERNEL_PATH = resolve(__dirname, './kernel' + platform === 'windows' ? '.exe' : '');
 const KERNEL_PORT = app.commandLine.getSwitchValue('port') !== '' && !isNaN(parseInt(app.commandLine.getSwitchValue('port'))) ? parseInt(app.commandLine.getSwitchValue('port')) : 9000;
 const DB_PATH = resolve(__dirname, './duck.db')
 
 // System config.
-const DEV_MODE: boolean = process.env.NODE_ENV === 'development';
+const DEV_MODE: boolean = process.env.NODE_ENV === 'debug';
 const SILENT_MODE = app.commandLine.getSwitchValue('start-mode') === 'silent';
 
 // System setting.

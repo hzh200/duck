@@ -23,7 +23,7 @@ func main() {
 	}
 
 	if config.devMode {
-		fmt.Println("Running under development mode.")
+		fmt.Println("Running under debug mode.")
 	}
 
 	err = persistence.StartManager(config.dbPath)
