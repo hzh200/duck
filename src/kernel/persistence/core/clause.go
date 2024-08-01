@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -57,20 +56,12 @@ func selectClauseFunction(params []interface{}) string {
 
 func insertClauseFunction(params []interface{}) string {
 	schema := params[0].(*Schema)
-	valueMap := params[1].(map[reflect.Type]interface{})
+	values := params[1].([]string)
 	template := strings.Builder{}
-	insertValues := make([]string, len(schema.Fields))
-	for i, field := range schema.Fields {
-		if reflect.TypeOf(valueMap[field.MemberType]).Kind() == reflect.String {
-			insertValues[i] = fmt.Sprintf("'%s'", valueMap[field.MemberType])
-		} else {
-			insertValues[i] = fmt.Sprintf("%v", valueMap[field.MemberType])
-		}
-	}
-	insertFields := make([]string, 0)
+	columns := make([]string, 0)
 	for _, field := range schema.Fields {
-		insertFields = append(insertFields, field.FieldName)
+		columns = append(columns, field.FieldName)
 	}
-	template.WriteString(fmt.Sprintf("INSERT INTO %s(%s) VALUES(%s);", schema.TableName, strings.Join(insertFields, ","), strings.Join(insertValues, ", ")))
+	template.WriteString(fmt.Sprintf("INSERT INTO %s(%s) VALUES(%s);", schema.TableName, strings.Join(columns, ","), strings.Join(values, ", ")))
 	return template.String()
 }

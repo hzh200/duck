@@ -4,8 +4,8 @@ import "reflect"
 
 type Dialect interface {
 	DataTypeMapping(fieldType reflect.Type) string
-	DataFormatting(value interface{}) interface{}
-	DataDeformatting(value interface{}) interface{}
+	DataFormatting(field interface{}) interface{}
+	DataDeformatting(value interface{}, fieldType reflect.Type) interface{}
 }
 
 var dialects map[string]Dialect = map[string]Dialect{}
