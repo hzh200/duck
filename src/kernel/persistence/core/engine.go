@@ -71,7 +71,7 @@ func New(dbPath string, driver string, models []interface{}) (*Engine, error) {
 func(engine *Engine) NewSession(modelType reflect.Type) *Session {
 	session := Session{}
 	session.engine = engine
-	session.schema = Parse(modelType, engine.dialect)
+	session.schema = Parse(modelType, engine.dialect, false)
 	session.clauses = make(map[Clause][]interface{})
 	return &session
 }

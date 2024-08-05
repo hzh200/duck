@@ -12,6 +12,7 @@ type Field struct {
 	FieldName string
 	FieldType string
 	Constraints string
+	AutoIncrement bool
 }
 
 type Schema struct {
@@ -19,9 +20,10 @@ type Schema struct {
 	StructName string
 	TableName string
 	Fields []Field	
+	PrimaryKeyField Field
 } 
 
-func Parse(modelType reflect.Type, dialect dialects.Dialect) *Schema {
+func Parse(modelType reflect.Type, dialect dialects.Dialect, system bool) *Schema {
 	schema := Schema{}
 	schema.ModelType = modelType
 	schema.StructName = modelType.Name()
@@ -39,9 +41,22 @@ func Parse(modelType reflect.Type, dialect dialects.Dialect) *Schema {
 		field.MemberType = modelField.Type
 		field.FieldType = dialect.DataTypeMapping(modelField.Type)
 		field.Constraints = modelField.Tag.Get("constraints");
+		field.AutoIncrement = strings.Contains(field.Constraints, "AutoIncrement")
+
+		if strings.Contains(field.Constraints, "PrimaryKey") {
+			if schema.PrimaryKeyField.MemberName != "" {
+				panic("model should only contain one primary key")
+			}
+			schema.PrimaryKeyField = field
+		}
 
 		schema.Fields = append(schema.Fields, field)
 	}
+
+	if !system && schema.PrimaryKeyField.MemberName == ""  {
+		panic("model must contain a primary key")
+	}
+	
 	return &schema
 }
 

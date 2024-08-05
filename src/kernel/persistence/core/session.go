@@ -18,7 +18,12 @@ func (session *Session) AddClause(clause Clause, data []interface{}) {
 func (session *Session) Build() {
 	for clause := CREATE; clause < ClauseBorder; clause++ {
 		if data, ok := session.clauses[clause]; ok {
-			session.sqlBuilder.WriteString(ClauseFunctions[clause](data))
+			clauseStr := ClauseFunctions[clause](data)
+			if len(clauseStr) > 0 && session.sqlBuilder.Len() > 0 && clauseStr[0] != 32 && session.sqlBuilder.String()[session.sqlBuilder.Len() - 1] != 32 {
+				clauseStr = string(append([]byte{' '}, []byte(clauseStr)...))
+			}
+			session.sqlBuilder.WriteString(clauseStr)
 		}
 	}
+	session.sqlBuilder.WriteString(";")
 }

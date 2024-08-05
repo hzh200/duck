@@ -361,3 +361,11 @@ func (s *sqlite3) DataDeformatting(value interface{}, fieldType reflect.Type) in
 	msg, _ := fmt.Printf("DataDeformatting: data type %s not supported", fieldType)
 	panic(msg)
 }
+
+func (s *sqlite3) AutoIncrement() string {
+	return "AUTOINCREMENT"
+}
+
+func (s *sqlite3) PrimaryKey() string {
+	return "PRIMARY KEY"
+}

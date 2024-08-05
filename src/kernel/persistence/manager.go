@@ -13,20 +13,23 @@ type Manager struct {
 
 func StartManager(dbPath string) error {
 	manager := Manager{}
+	
 	engine, err := core.New(dbPath, "sqlite3", []interface{}{
 		models.Task{}, 
 		models.TaskSet{},
 	})
+
 	if err != nil {
 		return err
 	}
+
 	manager.engine = engine
 	return nil
 }
 
 func (manager *Manager) GetAllTasks() ([]models.Task, error) {
 	var tasks []models.Task
-	err := manager.engine.Select(tasks)
+	err := manager.engine.Select(tasks, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +50,7 @@ func (manager *Manager) RemoveTask() {
 
 func (manager *Manager) GetAllTaskSets() ([]models.TaskSet, error) {
 	var taskSets []models.TaskSet
-	err := manager.engine.Select(taskSets)
+	err := manager.engine.Select(taskSets, []string{})
 	if err != nil {
 		return nil, err
 	}
