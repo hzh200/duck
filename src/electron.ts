@@ -20,7 +20,7 @@ const ICON_PATH = resolve(__dirname, '../../asset/favicon.ico');
 const EXE_NAME = basename(process.execPath);
 const SOFTWARE_NAME = '';
 const APP_PATH = resolve(__dirname, './index.html');
-const KERNEL_PATH = resolve(__dirname, './kernel' + platform === 'windows' ? '.exe' : '');
+const KERNEL_PATH = resolve(__dirname, './kernel' + (platform === 'windows' ? '.exe' : ''));
 const KERNEL_PORT = app.commandLine.getSwitchValue('port') !== '' && !isNaN(parseInt(app.commandLine.getSwitchValue('port'))) ? parseInt(app.commandLine.getSwitchValue('port')) : 9000;
 const DB_PATH = resolve(__dirname, './duck.db')
 

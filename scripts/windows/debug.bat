@@ -4,17 +4,27 @@
 @REM call clean.bat debug
 
 set mode="debug"
+set target_dir=build/%mode%
 
-rd /s /q "build/%mode%"
-md "build/%mode%"
+rd /s /q target_dir
+md target_dir
 
-cp src/app/index.html build/%mode%/
-call yarn tailwindcss -i src/app/interfaces/styles/globals.css -o build/%mode%/globals.css
+cp src/app/index.html %target_dir%/
+call yarn tailwindcss -i src/app/interfaces/styles/globals.css -o %target_dir%/globals.css
 call yarn webpack --config webpack.config.%mode%.js
 
 set CGO_ENABLED=1 
-call go build -C src/kernel.exe -o ../../build/%mode%/kernel.exe
-call yarn tsc src/utils/preload.ts --outdir build/%mode%
+
+cd src/kernel
+call go build
+
+cd ../..
+
+if not exist src/kernel/kernel.exe exit 1
+
+mv src/kernel/kernel.exe %target_dir%/kernel.exe
+
+call yarn tsc src/utils/preload.ts --outdir %target_dir%
 
 set NODE_ENV=debug 
 call yarn electron . --enable-logging --inspect
