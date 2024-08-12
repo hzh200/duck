@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Event, screen, Tray, Menu, nativeImage, ipcMain } from 'electron';
 import path, { resolve, basename } from 'node:path';
+import fs from 'node:fs';
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
 import { setConsoleMode, Log } from './utils/log';
 import os from 'node:os';
@@ -23,6 +24,7 @@ const APP_PATH = resolve(__dirname, './index.html');
 const KERNEL_PATH = resolve(__dirname, './kernel' + (platform === 'windows' ? '.exe' : ''));
 const KERNEL_PORT = app.commandLine.getSwitchValue('port') !== '' && !isNaN(parseInt(app.commandLine.getSwitchValue('port'))) ? parseInt(app.commandLine.getSwitchValue('port')) : 9000;
 const DB_PATH = resolve(__dirname, './duck.db')
+const SETTING_PATH = resolve(__dirname, './setting.json');
 
 // System config.
 const DEV_MODE: boolean = process.env.NODE_ENV === 'development';
@@ -77,14 +79,13 @@ const resizeMain = (width: number, height: number) => {
 const launchAPP = () => new Promise<void>((resolve, _reject) => {
   const initMainWindow = () => {
     mainWindow = new BrowserWindow({
-      width: mainWidth / scaleFactor,
-      height: mainHeight / scaleFactor,
+      width: mainWidth,
+      height: mainHeight,
       icon,
       show: false,
       frame: false,
       transparent: true,
       webPreferences: {
-        zoomFactor: 1.0 / scaleFactor,
         preload: path.resolve(__dirname, 'preload.js')
       }
     });
@@ -94,14 +95,15 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
 
     if (!SILENT_MODE) {
       mainWindow.once("ready-to-show", async () => {
-        mainWindow.show();
         if (DEV_MODE) {
           await initDevToolsWindow();
         }
+        mainWindow.show();
         resolve();
       });
     }
 
+    // Showing mainWindow would also trigger this event.
     mainWindow.addListener("move", () => {
       ({x: mainX, y: mainY} = mainWindow.getBounds());
     });
@@ -113,13 +115,13 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
 
   const initDevToolsWindow = (): Promise<void> => {
     devtoolsWindow = new BrowserWindow({
-      width: devtoolsWidth / scaleFactor,
-      height: devtoolsHeight / scaleFactor,
+      width: devtoolsWidth,
+      height: devtoolsHeight,
       icon,
       show: false,
       frame: true,
       webPreferences: {
-        zoomFactor: 1.0 / scaleFactor
+        zoomFactor: 3.0 // Not working
       }
     });
 
@@ -133,13 +135,14 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       positionMain(mainX, mainY);
     });
 
-    mainWindow.addListener('move', () => {
+    // devtoolsWindow would automatically increase size while holding mainWindow under 'move' event.
+    mainWindow.addListener('moved', () => {
       devtoolsX = mainX + mainWidth;
       devtoolsY = mainY;
       positionDevTools(devtoolsX, devtoolsY);
     });
 
-    mainWindow.addListener("resize", () => {
+    mainWindow.addListener("resized", () => {
       devtoolsX = mainX + mainWidth;
       devtoolsY = mainY;
       positionDevTools(devtoolsX, devtoolsY);
@@ -151,7 +154,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       }
     });
 
-    // mainWindow maximize and minimize event can't be triggered here
+    // mainWindow maximize and minimize event wouldn't be triggered here
     // mainWindow.on('minimize', (_event: Event) => {});
     // mainWindow.on('maximize', (_event: Event) => {});
     // mainWindow.on('unmaximize', (_event: Event) => {});
@@ -172,19 +175,30 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
   initMainWindow();
 });
 
-const shutdownAPP = () => new Promise<void>((resolve, _reject) => {
+// const shutdownAPP = () => new Promise<void>((resolve, _reject) => {
+//   if (!mainWindow.isDestroyed()) {
+//     mainWindow.close();
+//   }
+//   const shutdownPromises = [new Promise<void>((resolve, _reject) => mainWindow.on('closed', resolve))];
+//   if (DEV_MODE) {
+//     if (!devtoolsWindow.isDestroyed()) {
+//       devtoolsWindow.close();
+//     }
+//     shutdownPromises.push(new Promise<void>((resolve, _reject) => devtoolsWindow.on('closed', resolve)));
+//   }
+//   Promise.all(shutdownPromises).then(() => resolve());
+// });
+
+const shutdownAPP = () => {
   if (!mainWindow.isDestroyed()) {
-    mainWindow.close();
+    mainWindow.destroy();
   }
-  const shutdownPromises = [new Promise<void>((resolve, _reject) => mainWindow.on('closed', resolve))];
   if (DEV_MODE) {
     if (!devtoolsWindow.isDestroyed()) {
-      devtoolsWindow.close();
+      devtoolsWindow.destroy();
     }
-    shutdownPromises.push(new Promise<void>((resolve, _reject) => devtoolsWindow.on('closed', resolve)));
   }
-  Promise.all(shutdownPromises).then(() => resolve());
-});
+};
 
 const launchKernel = () => new Promise<void>((resolve, _reject) => {
   kernel = spawn(KERNEL_PATH, [
@@ -214,7 +228,7 @@ const launchTray = () => {
   const contextMenu = Menu.buildFromTemplate([
     { 
       label: 'Show Main Window', 
-      click: mainWindow.show
+      click: () => mainWindow.show()
     },
     { 
       label: 'Quit', 
@@ -223,7 +237,7 @@ const launchTray = () => {
   ]);
   tray.setToolTip(SOFTWARE_NAME);
   tray.setContextMenu(contextMenu);
-  tray.on('double-click', mainWindow.show);
+  tray.on('double-click', () => mainWindow.show());
 };
 
 const shutdownTray = () => {
@@ -236,24 +250,31 @@ const launchSystem = async () => {
   await launchKernel();
   await launchAPP();
   launchTray();
+  Log.info("the system has been started.");
 };
 
 const shutdownSystem = async () => {
   appTerminating = true;
   shutdownTray();
-  await shutdownAPP();
+  shutdownAPP();
   const code: number | null = await shutdownKernel();
   if (code !== null) {
     Log.info(`kernel closed with ${code}`);
   }
   
-  Log.info("System has been shutted down.");
+  Log.info("the system has been shutted down.");
+  
+  await new Promise<void>((resolve, reject) => {
+    setTimeout(() => resolve(), 10000)
+  })
   app.quit();
   process.exit(1);
+
+  // process.on('exit', () => process.exit(1));
 };
 
 if (!app.requestSingleInstanceLock()) {
-  Log.error("An instance is already running.");
+  Log.error("an instance is already running.");
   await shutdownSystem();
 }
 
@@ -264,21 +285,25 @@ try {
   const screenInfo = screen.getPrimaryDisplay();
 
   ({ width: screenWidth, height: screenHeight } = screenInfo.size);
-  mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.98) * 0.6) : Math.ceil(screenWidth * 0.8);
+  scaleFactor = screenInfo.scaleFactor;
+
+  mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.85) * 0.6) : Math.ceil(screenWidth * 0.7);
   mainHeight = Math.ceil(screenHeight * 0.6);
-  devtoolsWidth = Math.ceil((screenWidth * 0.98) * 0.4);
+  devtoolsWidth = Math.ceil((screenWidth * 0.8) * 0.4);
   devtoolsHeight = Math.ceil(screenHeight * 0.8);
   // Defaultly, put mainWindow on the center of the screen, if in dev mode, put mainWindow and devWindow together on the center of the screen.
-  mainX = Math.floor((screenWidth - mainWidth) / 2);
+  mainX = Math.ceil((screenWidth - mainWidth) / 2);
   if (DEV_MODE) {
-    mainX = Math.floor(mainX - devtoolsWidth / 2);
+    mainX = Math.ceil(mainX - devtoolsWidth / 2);
   }
-  mainY = Math.floor((screenHeight - (DEV_MODE ? Math.max(mainHeight, devtoolsHeight) : mainHeight)) / 2);
+  mainY = Math.ceil((screenHeight - (DEV_MODE ? Math.max(mainHeight, devtoolsHeight) : mainHeight)) / 2);
   // Put the DevTools window at the right side of the main window.
   devtoolsX = mainX + mainWidth;
   devtoolsY = mainY;
 
-  scaleFactor = screenInfo.scaleFactor;
+  if (fs.existsSync(SETTING_PATH)) {
+    Object.assign(globalSetting, JSON.parse(fs.readFileSync(SETTING_PATH, {encoding: "utf-8"}))) 
+  }
 
   if (globalSetting.launchOnStartup) {
     app.setLoginItemSettings({
@@ -299,10 +324,10 @@ try {
     if (appTerminating) {
       return;
     }
+    event.preventDefault();
     if (globalSetting.closeToTray) {
       mainWindow.hide();
     } else {
-      event.preventDefault();
       await shutdownSystem();
     }
   });
