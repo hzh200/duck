@@ -30,7 +30,7 @@ func (engine *Engine) Post(url string, handler Handler) {
 }
 
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	found, handler := engine.router.Route(r.Method, r.URL.Path)
+	found, handler, routeParams := engine.router.Route(r.Method, r.URL.Path)
 	if !found {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -38,6 +38,7 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	context := Context{}
 	context.Response = w
 	context.Request = r
+	context.RouteParams = routeParams
 	(*handler)(&context)
 }
 

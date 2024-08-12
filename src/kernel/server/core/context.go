@@ -8,6 +8,7 @@ import (
 type Context struct {
 	Response http.ResponseWriter
 	Request *http.Request
+	RouteParams map[string]string
 }
 
 func (context *Context) GetParam(key string) string {

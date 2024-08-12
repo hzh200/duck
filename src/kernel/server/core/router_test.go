@@ -35,7 +35,33 @@ func TestRouterRoute(t *testing.T) {
 	path := "/hello"
 	var handler Handler = func (context *Context) {}
 	router.AddRoute(http.MethodGet, path, &handler)
-	if found, routeHandler := router.Route(http.MethodGet, path); !found || routeHandler != &handler {
+	if found, routeHandler, _ := router.Route(http.MethodGet, path); !found || routeHandler != &handler {
+		t.Fatalf("router route failed, %p", routeHandler)
+	}
+}
+
+func TestRouterRouteWithParameters(t *testing.T) {
+	router := NewRouter()
+	var handler Handler = func (context *Context) {}
+	router.AddRoute(http.MethodGet, "/hello/:name", &handler)
+
+	found, routeHandler, params := router.Route(http.MethodGet, "/hello/hzh")
+	if !found || routeHandler != &handler || len(params) != 1 {
+		t.Fatalf("router route failed, %p", routeHandler)
+	}
+	if value, ok := params["name"]; !ok || value != "hzh" {
+		t.Fatalf("router route failed, %p", routeHandler)
+	}
+
+	router.AddRoute(http.MethodPost, "/param/:1/param/:2", &handler)
+	found, routeHandler, params = router.Route(http.MethodPost, "/param/param1/param/param2")
+	if !found || routeHandler != &handler || len(params) != 2 {
+		t.Fatalf("router route failed, %p", routeHandler)
+	}
+	if value, ok := params["1"]; !ok || value != "param1" {
+		t.Fatalf("router route failed, %p", routeHandler)
+	}
+	if value, ok := params["2"]; !ok || value != "param2" {
 		t.Fatalf("router route failed, %p", routeHandler)
 	}
 }
