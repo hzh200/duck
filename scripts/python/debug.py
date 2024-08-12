@@ -18,7 +18,6 @@ mode = "debug"
 clean(mode)
 
 os.environ["CGO_ENABLED"] = "1"
-os.environ["NODE_ENV"] = "debug"
 
 shutil.copyfile("src/app/index.html", f"build/{mode}/index.html")
 subprocess.run(f"yarn tailwindcss -i src/app/interfaces/styles/globals.css -o ./build/{mode}/globals.css", shell=True, check=True)

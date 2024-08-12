@@ -25,7 +25,7 @@ const KERNEL_PORT = app.commandLine.getSwitchValue('port') !== '' && !isNaN(pars
 const DB_PATH = resolve(__dirname, './duck.db')
 
 // System config.
-const DEV_MODE: boolean = process.env.NODE_ENV === 'debug';
+const DEV_MODE: boolean = process.env.NODE_ENV === 'development';
 const SILENT_MODE = app.commandLine.getSwitchValue('start-mode') === 'silent';
 
 // System setting.

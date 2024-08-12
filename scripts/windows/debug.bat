@@ -3,11 +3,11 @@
 @REM cd scripts/windows
 @REM call clean.bat debug
 
-set mode="debug"
+set mode=debug
 set target_dir=build/%mode%
 
-rd /s /q target_dir
-md target_dir
+rd /s /q %target_dir%
+md %target_dir%
 
 cp src/app/index.html %target_dir%/
 call yarn tailwindcss -i src/app/interfaces/styles/globals.css -o %target_dir%/globals.css
@@ -26,5 +26,4 @@ mv src/kernel/kernel.exe %target_dir%/kernel.exe
 
 call yarn tsc src/utils/preload.ts --outdir %target_dir%
 
-set NODE_ENV=debug 
 call yarn electron . --enable-logging --inspect
