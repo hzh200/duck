@@ -33,13 +33,24 @@ const SILENT_MODE = app.commandLine.getSwitchValue('start-mode') === 'silent';
 // System setting.
 const globalSetting = {
   launchOnStartup: false,
-  closeToTray: true
+  closeToTray: true,
+  downloadDirectory: path.join(os.homedir(), "Downloads"),
+  proxy: {
+    proxyMode: "system", // off | system | manually
+    host: "",
+    port: ""
+  },
+  trafficLimit: {
+    enabled: false,
+    limit: 0
+  }
 };
 
 // System resources.
 let tray!: Tray;
 let mainWindow!: BrowserWindow;
 let devtoolsWindow!: BrowserWindow;
+let settingTimeout!: NodeJS.Timeout;
 let kernel!: ChildProcessWithoutNullStreams;
 const icon = nativeImage.createFromPath(ICON_PATH);
 
@@ -99,6 +110,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
           await initDevToolsWindow();
         }
         mainWindow.show();
+        settingTimeout = setInterval(() => mainWindow.webContents.send('settings', globalSetting), 100);
         resolve();
       });
     }
@@ -190,6 +202,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
 // });
 
 const shutdownAPP = () => {
+  clearInterval(settingTimeout);
   if (!mainWindow.isDestroyed()) {
     mainWindow.destroy();
   }
@@ -203,11 +216,13 @@ const shutdownAPP = () => {
 const launchKernel = () => new Promise<void>((resolve, _reject) => {
   kernel = spawn(KERNEL_PATH, [
     '-mode', 
-    `${DEV_MODE ? 'dev' : 'proc'}`, 
+    DEV_MODE ? 'dev' : 'proc', 
     '-port', 
     `${KERNEL_PORT}`, 
     '-dbPath',
-    `${DB_PATH}`
+    DB_PATH,
+    '-settingPath',
+    SETTING_PATH
   ]);
   kernel.stdout.on("data", (data) => {
     Log.kernelInfo(data);
@@ -303,7 +318,14 @@ try {
 
   if (fs.existsSync(SETTING_PATH)) {
     Object.assign(globalSetting, JSON.parse(fs.readFileSync(SETTING_PATH, {encoding: "utf-8"}))) 
+  } else {
+    fs.writeFileSync(SETTING_PATH, JSON.stringify(globalSetting))
   }
+
+  ipcMain.on('updateSettings', (_event, settingsJson) => {
+    Object.assign(globalSetting, JSON.parse(settingsJson));
+    fs.writeFileSync(SETTING_PATH, settingsJson)
+  });
 
   if (globalSetting.launchOnStartup) {
     app.setLoginItemSettings({

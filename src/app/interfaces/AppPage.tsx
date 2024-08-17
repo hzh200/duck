@@ -7,13 +7,15 @@ import { Label } from "@/components/ui/label";
 
 import '@/interfaces/styles/app.css';
 import Router from '@/router';
+import { proxiedSetting } from '@/lib/setting';
 
 function AppPage() {
   const [isWindowMaximized, setIsWindowMaximized] = useState<boolean>(false);
   const [path, setPath] = useState<string>('/task');
-  
-  useEffect(() => {
+  const [setting, setSetting] = useState<{[key: string]: any}>({});
 
+  useEffect(() => {
+    setInterval(() => setSetting({...proxiedSetting}), 10);
   }, []);
 
   return (
@@ -65,7 +67,7 @@ function AppPage() {
           </div>
         </nav>
         <main className='h-full w-main'>
-          {Router.route(path)}
+          {Router.route(path, setting)}
         </main>
       </div>
     </div>
