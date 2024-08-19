@@ -1,4 +1,4 @@
-package models
+package constance
 
 type TaskStatus int64
 

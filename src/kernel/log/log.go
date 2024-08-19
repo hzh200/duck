@@ -14,14 +14,14 @@ var stdout *log.Logger = log.New(os.Stdout, "", log.LstdFlags)
 var stderr *log.Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 func Info(text string) {
-	stdout.Println(getAdditionalInfo() + text)
+	stdout.Println(additionalInfo() + text)
 }
 
-func Error(text string) {
-	stderr.Println(getAdditionalInfo() + text)
+func Error(err error) {
+	stderr.Println(additionalInfo() + err.Error())
 }
 
-func getAdditionalInfo() string {
+func additionalInfo() string {
 	pc, file, line, ok := runtime.Caller(1)
 	if !ok {
 		return ""
