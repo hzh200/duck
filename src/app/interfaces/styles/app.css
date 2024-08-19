@@ -45,3 +45,22 @@
 .scroll:focus::-webkit-scrollbar-thumb {
     background-color: rgb(233, 233, 233); 
 }
+
+@keyframes loadingAnimation{
+    0%{
+      transform: rotate(0deg);
+    }
+    100%{
+      transform: rotate(360deg);
+    }
+}
+
+.loading{
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    border-top: 3px solid #1F9FFF;
+    animation: loadingAnimation 2s infinite linear;
+}

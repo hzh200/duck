@@ -42,15 +42,9 @@ const Router = {
     }
     return [EmptyPage, {}];
   },
-  route: function (
-    searchRoute: string,
-    navigate: Function | undefined = undefined
-  ): React.JSX.Element {
-    const [constructor, params] = this.search(searchRoute);
-    if (navigate) {
-      params["navigate"] = navigate;
-    }
-    return React.createElement(constructor, params);
+  route: function (searchRoute: string, data: any): React.JSX.Element {
+    const [constructor, _params] = this.search(searchRoute);
+    return React.createElement(constructor, data);
   },
 };
 
