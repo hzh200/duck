@@ -15,7 +15,7 @@ interface TaskTableColumn {
 const taskTableColumns: Array<TaskTableColumn> = [
     {
         'title': 'FileName',
-        'accessorKey': 'fileName',
+        'accessorKey': 'taskName',
         'classes': ['w-10']
     },
     {

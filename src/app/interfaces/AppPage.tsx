@@ -12,11 +12,12 @@ import { proxiedSetting } from '@/lib/setting';
 
 function AppPage() {
   const [isWindowMaximized, setIsWindowMaximized] = useState<boolean>(false);
-  const [path, setPath] = useState<string>('/task');
-  const [setting, setSetting] = useState<{[key: string]: any}>({});
+  const [path, setPath] = useState<string>("");
+  const [setting, setSetting] = useState<{[key: string]: any}>();
 
   useEffect(() => {
     setInterval(() => setSetting({...proxiedSetting}), 10);
+    setTimeout(() => setPath("/task"), 800)
   }, []);
 
   return (

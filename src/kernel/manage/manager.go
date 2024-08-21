@@ -22,6 +22,10 @@ type Manager struct {
 func NewManager(persistence *persistence.Persistence) *Manager {
 	manager := Manager{}
 	manager.queue = NewTaskQueue()
+	tasks, _ := persistence.GetAllTasks()
+	for _, task := range tasks {
+		manager.queue.AddTask(task)	
+	}
 	manager.persistence = persistence
 	manager.runningTaskNos = make([]int64, 0)
 	return &manager

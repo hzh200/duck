@@ -9,5 +9,5 @@ type TaskSet struct {
 	CreateTime time.Time
 	UpdateTime time.Time
 	Extractor string
-	AdditionalInfo map[string]interface{}
+	AdditionalInfo map[string]string
 }

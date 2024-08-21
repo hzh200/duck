@@ -45,7 +45,7 @@ function DownloadPage(setting: {[key: string]: any}) {
     setExtracting(true);
     setExtracted(false);
     setErrMessage("");
-    fetch(`http://127.0.0.1:9000/extract?url=${url}&extractor=${choosenExtractor.name}`).then(res => res.json()).then(async res => {
+    fetch(`http://127.0.0.1:${setting["kernelPort"]}/extract?url=${url}&extractor=${choosenExtractor.name}`).then(res => res.json()).then(async res => {
         if (res["errMessage"]) {
             throw new Error(res["errMessage"]);
         }

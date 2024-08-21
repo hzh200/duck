@@ -64,6 +64,6 @@ func (extractor HttpExtractor) NewTask(info http.PreflightInfo, options map[stri
 	task.IsRange = info.IsRange
 	task.Ranges = [][]int64{{0, task.TaskSize - 1}}
 	task.Extractor = options["Extractor"].(string)
-	task.AdditionalInfo = make(map[string]interface{})
+	task.AdditionalInfo = make(map[string]string)
 	return task
 }

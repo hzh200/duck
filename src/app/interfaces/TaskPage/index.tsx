@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TaskList from "@/interfaces/TaskPage/TaskList";
 import TaskInfo from "@/interfaces/TaskPage/TaskInfo";
 import { Task } from "@/models/Task";
@@ -13,27 +13,32 @@ import {
 
 import TaskControl from "./TaskControl";
 
-
-function TaskPage() {
+function TaskPage(setting: {[key: string]: any}) {
   const [layout, setLayout] = useState<number[]>([75, 25]);
-  const [tasks, setTasks] = useState<Array<Task>>([
-    {
-      taskNo: 1,
-      fileName: "a",
-      status: TaskStatus.Successed,
-      progress: 1,
-      size: 1,
-    },
-    {
-      taskNo: 2,
-      fileName: "b",
-      status: TaskStatus.Running,
-      progress: 66,
-      size: 100,
-    },
-  ]);
+  const [tasks, setTasks] = useState<Array<Task>>([]);
   const [choosenFilter, setChoosenFilter] = useState<TaskFilter>(taskFilters[0]);
   const [choosenTaskNos, setChoosenTaskNos] = useState<Array<number>>([]);
+
+  useEffect(() => {
+    const getTasks = () => {
+      fetch(`http://127.0.0.1:${setting["kernelPort"]}/tasks`).then(res => res.json()).then(res => {
+        const newTasks: Array<Task> = [];
+        for (const task of res["tasks"]) {
+          newTasks.push({
+            taskNo: task["TaskNo"],
+            taskName: task["TaskName"],
+            status: task["TaskStatus"],
+            progress: task["TaskProgress"],
+            size: task["TaskSize"],
+          });
+        }
+        setTasks(newTasks);
+      }).catch((_err: Error) => {});
+    };
+
+    getTasks(); 
+    setInterval(getTasks, 1000);
+  }, []);
 
   return (
     <div className="h-full w-full">

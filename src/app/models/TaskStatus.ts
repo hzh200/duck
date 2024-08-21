@@ -1,10 +1,10 @@
 enum TaskStatus {
-    Waiting,
-    Running,
-    Paused,
-    Stopped,
-    Successed,
-    Failed
+    Waiting = 1,
+    Running = 2,
+    Paused = 3,
+    Stopped = 4,
+    Successed = 5,
+    Failed = 6
 }
 
 export default TaskStatus;

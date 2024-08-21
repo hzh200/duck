@@ -23,5 +23,5 @@ type Task struct {
 	IsRange bool
 	Ranges [][]int64
 	Extractor string
-	AdditionalInfo map[string]interface{}
+	AdditionalInfo map[string]string
 }

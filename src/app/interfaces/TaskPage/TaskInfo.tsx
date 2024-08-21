@@ -14,7 +14,7 @@ function TaskInfo({ task }: TaskInfoProps) {
   
   return (
     <div className='h-full'>
-      <span>{task.fileName}</span>
+      <span>{task.taskName}</span>
       <Separator />
     </div>
   );
