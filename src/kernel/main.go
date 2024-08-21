@@ -9,19 +9,19 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 type Config struct {
 	devMode bool
-	port uint16
 	dbPath string
 	settingPath string
 }
 
 type Setting struct {
 	LaunchOnStartup bool
+	SlientMode bool
 	CloseToTray bool
+	KernelPort uint16
 	DownloadDirectory string
 	Proxy ProxySetting
 	TrafficLimit TrafficLimit
@@ -30,7 +30,7 @@ type Setting struct {
 type ProxySetting struct {
 	ProxyMode string
 	Host string
-	Port string
+	Port int16
 }
 
 type ProxyMode string
@@ -56,19 +56,26 @@ func main() {
 		log.Info("Running under debug mode.")
 	}
 
-	ticker := time.NewTicker(1 * time.Second)
-	go func() {
-		for {
-			<-ticker.C
-			bytes, err := os.ReadFile(config.settingPath)
+	settings := Setting{}
+	bytes, err := os.ReadFile(config.settingPath)
+	if err != nil {
+		log.Error(err)
+	}
+	json.Unmarshal(bytes, &settings)
 
-			if err != nil {
-				log.Error(err)
-			}
-			settings := Setting{}
-			json.Unmarshal(bytes, &settings)
-		}
-	}()
+	// ticker := time.NewTicker(1 * time.Second)
+	// go func() {
+	// 	for {
+	// 		<-ticker.C
+	// 		bytes, err := os.ReadFile(config.settingPath)
+
+	// 		if err != nil {
+	// 			log.Error(err)
+	// 		}
+
+	// 		json.Unmarshal(bytes, &settings)
+	// 	}
+	// }()
 
 	// Init the orm.
 	persistence, err := persistence.InitPersistence(config.dbPath)
@@ -84,7 +91,7 @@ func main() {
 
 	// Init the http service.
 	server.InitRoutes(manager)
-	err = server.StartServer(config.port)
+	err = server.StartServer(settings.KernelPort)
 
 	if err != nil {
 		log.Error(err)
@@ -103,14 +110,12 @@ func parseArgs() (Config, error) {
 	defaultSettingPath := filepath.Join(filepath.Dir(exe), "./setting.json")
 
 	mode := flag.String("mode", "proc", "kernel running mode: dev/proc")
-	port := flag.Int("port", 9000, "backend http server listening port")
 	dbPath := flag.String("dbPath", defaultDBPath, "database file path")
 	settingPath := flag.String("settingPath", defaultSettingPath, "setting file path")
 	flag.Parse()
 
 	return Config{
 		devMode: *mode == "dev", 
-		port: uint16(*port), 
 		dbPath: *dbPath,
 		settingPath: *settingPath,
 	}, nil

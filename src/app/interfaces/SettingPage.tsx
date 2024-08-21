@@ -38,7 +38,7 @@ function SettingPage(setting: {[key: string]: any}) {
                         <div id='traffic-limit' className="flex items-center space-x-2">
                             <Switch name="trafficLimit-enabled" checked={setting["trafficLimit"]["enabled"]} 
                                 onCheckedChange={value => onSettingChange('trafficLimit-enabled', value)} />
-                            <Input name="trafficLimit-limit" className='w-[120px]' value={setting["trafficLimit"]["limit"]} 
+                            <Input name="trafficLimit-limit" className='w-[120px]' value={setting["trafficLimit"]["limit"]} disabled={!setting["trafficLimit"]["enabled"]} 
                                 onChange={event => onSettingChange('trafficLimit-limit', event.target.value)} />
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                 Mb/s
@@ -71,12 +71,12 @@ function SettingPage(setting: {[key: string]: any}) {
                     <div className="flex items-center space-x-2">
                         <Label htmlFor='host'>Host:</Label>
                         <div id='host'>
-                            <Input name="proxy-host" className='w-[120px]' value={setting["proxy"]["host"]} 
+                            <Input name="proxy-host" className='w-[120px]' value={setting["proxy"]["host"]} disabled={setting["proxy"]["proxyMode"] !== "manually"} 
                                 onChange={event => onSettingChange('proxy-host', event.target.value)} />
                         </div>
                         <Label htmlFor='port'>Port:</Label>
                         <div id='port'>
-                            <Input name="proxy-port" className='w-[120px]' value={setting["proxy"]["port"]} 
+                            <Input name="proxy-port" className='w-[120px]' value={setting["proxy"]["port"]} disabled={setting["proxy"]["proxyMode"] !== "manually"}
                                 onChange={event => onSettingChange('proxy-port', event.target.value)} />
                         </div>
                     </div>
@@ -94,10 +94,35 @@ function SettingPage(setting: {[key: string]: any}) {
                         </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                        <Label htmlFor='slient-mode'>Slient mode:</Label>
+                        <div id="slient-mode">
+                            <Switch name="slientMode" checked={setting["slientMode"]} 
+                                onCheckedChange={value => onSettingChange('slientMode', value)} />
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
                         <Label htmlFor='close-to-tray'>Close to tray:</Label>
                         <div id="close-to-tray">
                             <Switch name="closeToTray" checked={setting["closeToTray"]} 
                                 onCheckedChange={value => onSettingChange('closeToTray', value)} />
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Label htmlFor='kernel-port'>Kernel port:</Label>
+                        <div id="kernel-port">
+                            <Input name="kernelPort" className='w-[120px]' value={setting["kernelPort"]} 
+                                onChange={event => {
+                                    let port = event.target.value;
+                                    let numEndIndex = 0;
+                                    for (let i = 0; i < port.length; i++) {
+                                        if (isNaN(Number(port.substring(i, i + 1)))) {
+                                            break;
+                                        }
+                                        numEndIndex++;
+                                    }
+                                    port = port.substring(0, numEndIndex);
+                                    onSettingChange('kernelPort', port);
+                                }} />
                         </div>
                     </div>
                 </div>

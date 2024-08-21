@@ -22,18 +22,18 @@ const EXE_NAME = basename(process.execPath);
 const SOFTWARE_NAME = '';
 const APP_PATH = resolve(__dirname, './index.html');
 const KERNEL_PATH = resolve(__dirname, './kernel' + (platform === 'windows' ? '.exe' : ''));
-const KERNEL_PORT = app.commandLine.getSwitchValue('port') !== '' && !isNaN(parseInt(app.commandLine.getSwitchValue('port'))) ? parseInt(app.commandLine.getSwitchValue('port')) : 9000;
 const DB_PATH = resolve(__dirname, './duck.db')
 const SETTING_PATH = resolve(__dirname, './setting.json');
 
 // System config.
 const DEV_MODE: boolean = process.env.NODE_ENV === 'development';
-const SILENT_MODE = app.commandLine.getSwitchValue('start-mode') === 'silent';
 
 // System setting.
 const globalSetting = {
   launchOnStartup: false,
+  slientMode: false,
   closeToTray: true,
+  kernelPort: 9000,
   downloadDirectory: path.join(os.homedir(), "Downloads"),
   proxy: {
     proxyMode: "system", // off | system | manually
@@ -45,6 +45,12 @@ const globalSetting = {
     limit: 0
   }
 };
+
+const kernelConfig = {
+  "-mode": DEV_MODE ? "dev" : "proc",
+  "-dbPath": DB_PATH,
+  "-settingPath": SETTING_PATH
+}
 
 // System resources.
 let tray!: Tray;
@@ -104,7 +110,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
     mainWindow.setMenu(null);
     mainWindow.loadFile(APP_PATH);
 
-    if (!SILENT_MODE) {
+    if (!globalSetting.slientMode) {
       mainWindow.once("ready-to-show", async () => {
         if (DEV_MODE) {
           await initDevToolsWindow();
@@ -176,7 +182,7 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
   
     return new Promise((resolve) => {
       devtoolsWindow.on('ready-to-show', () => {
-        if (!SILENT_MODE) {
+        if (!globalSetting.slientMode) {
           devtoolsWindow.show();
         }
         resolve();
@@ -214,16 +220,7 @@ const shutdownAPP = () => {
 };
 
 const launchKernel = () => new Promise<void>((resolve, _reject) => {
-  kernel = spawn(KERNEL_PATH, [
-    '-mode', 
-    DEV_MODE ? 'dev' : 'proc', 
-    '-port', 
-    `${KERNEL_PORT}`, 
-    '-dbPath',
-    DB_PATH,
-    '-settingPath',
-    SETTING_PATH
-  ]);
+  kernel = spawn(KERNEL_PATH, Object.entries(kernelConfig).flat());
   kernel.stdout.on("data", (data) => {
     Log.kernelInfo(data);
   });
