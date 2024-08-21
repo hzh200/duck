@@ -32,11 +32,19 @@ func (router *Router) AddRoute(method string, path string, handler *Handler) err
 	if len(path) < 1 || path[0] != '/' || strings.Contains(path, "//") {
 		return errors.New("invalid path")
 	}
-	if len(path) > 1 && path[len(path) - 1] == '/' {
-		path = path[:len(path) - 1]
-	}
+
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+
 	curNode := router.root
-	subPaths := strings.Split(method + path, "/")
+
+	var subPaths []string
+	if len(path) == 0 {
+		subPaths = []string{method}
+	} else {
+		subPaths = strings.Split(method + "/" + path, "/")
+	}
+
 	for i, subPath := range subPaths {
 		before := curNode
 		for _, child := range curNode.children {
@@ -63,32 +71,46 @@ func (router *Router) AddRoute(method string, path string, handler *Handler) err
 	return nil
 }
 
-func (router *Router) Route(method string, path string) (bool, *Handler) {
+func (router *Router) Route(method string, path string) (bool, *Handler, map[string]string) {
 	if len(path) < 1 || path[0] != '/' || strings.Contains(path, "//") {
-		return false, nil
+		return false, nil, nil
 	}
+
+	path = path[1:]
 
 	if len(path) > 1 && path[len(path) - 1] == '/' {
 		path = path[:len(path) - 1]
 	}
+
 	curNode := router.root
-	subPaths := strings.Split(method + path, "/")
+
+	var subPaths []string
+	if len(path) == 0 {
+		subPaths = []string{method}
+	} else {
+		subPaths = strings.Split(method + "/" + path, "/")
+	}
+
+	routeParams := make(map[string]string)
 	for i, subPath := range subPaths {
 		before := curNode
 		for _, child := range curNode.children {
-			if strings.Compare(child.val, subPath) == 0 {
+			if strings.Compare(child.val, subPath) == 0 || child.val[0] == 58 {
+				if child.val[0] == 58 {
+					routeParams[string(child.val[1:])] = subPath
+				}
 				curNode = child
 				break
 			}
 		}
 		if before == curNode {
-			return false, nil
+			return false, nil, nil
 		}
 		if curNode.isLeaf && i == len(subPaths) - 1 {
-			return true, curNode.handler
+			return true, curNode.handler, routeParams
 		}
 	}
-	return false, nil
+	return false, nil, nil
 }
 
 func (router *Router) GetRoutes() map[string][]string {

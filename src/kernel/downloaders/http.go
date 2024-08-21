@@ -2,24 +2,23 @@ package downloaders
 
 import (
 	"duck/kernel/extractors/extractor"
-	"duck/kernel/fs"
 	"duck/kernel/http"
 	"duck/kernel/models"
 	"fmt"
 	"io"
 	netHttp "net/http"
 	"strings"
+	"os"
 )
 
 type HttpDownloader struct {
 	task *models.Task
-	isRunning bool
+	fd *os.File
 }
 
 func NewHttpDownloader(task *models.Task) Downloader {	
 	downloader := HttpDownloader{}
 	downloader.task = task
-	downloader.isRunning = false
 	return downloader
 }
 
@@ -54,7 +53,7 @@ func (downloader HttpDownloader) Start() error {
 	}
 	defer res.Body.Close()
 	
-	err = fs.CreateIfNotExisted(downloader.task.FileLocation)
+	downloader.fd, err = os.OpenFile(downloader.task.FileLocation, os.O_RDWR | os.O_CREATE, 0666)
     if err != nil {
         return err
     }
@@ -70,12 +69,16 @@ func (downloader HttpDownloader) Start() error {
             }
             eof = true
         }
-		writeN, err := fs.WriteFile(downloader.task.FileLocation, downloader.task.TaskProgress, buf[:readN])
+		// writeN, err := fs.WriteFile(downloader.task.FileLocation, downloader.task.TaskProgress, buf[:readN])
+		writeN, err := downloader.fd.WriteAt(buf[:readN], downloader.task.TaskProgress)
 		if err != nil {
 			return err
 		}
+
 		downloader.task.TaskProgress += int64(writeN)
     }
+
+	downloader.fd.Close()
 
 	return nil
 }

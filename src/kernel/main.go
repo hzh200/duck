@@ -2,6 +2,7 @@ package main
 
 import (
 	"duck/kernel/log"
+	"duck/kernel/manage"
 	"duck/kernel/persistence"
 	"duck/kernel/server"
 	"encoding/json"
@@ -71,17 +72,24 @@ func main() {
 
 	// Init the orm.
 	persistence, err := persistence.InitPersistence(config.dbPath)
-
 	if err != nil {
 		log.Error(err)
 	}
+	
+	// Init the main.
+	manager := manage.NewManager(persistence)
+
+	// Start the scheduling procedure.
+	manager.Schedule()
 
 	// Init the http service.
-	err = server.StartServer(config.port, persistence)
+	server.InitRoutes(manager)
+	err = server.StartServer(config.port)
 
 	if err != nil {
 		log.Error(err)
 	}
+	
 }
 
 func parseArgs() (Config, error) {

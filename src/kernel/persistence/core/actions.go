@@ -101,20 +101,30 @@ func (engine *Engine) Select(models interface{}, conditions []string) error {
 }
 
 func (engine *Engine) Insert(model interface{}) error {
-	session := engine.NewSession(reflect.TypeOf(model))
+	session := engine.NewSession(reflect.TypeOf(model).Elem())
 	columns := make([]string, 0)
 	values := make([]string, 0)
 	for i, field := range session.schema.Fields {
 		if field.AutoIncrement {
 			continue
 		}
-		columns = append(columns, field.MemberName)
-		values = append(values, fmt.Sprintf("%v", engine.dialect.DataFormatting(reflect.ValueOf(model).Field(i).Interface())))
+		columns = append(columns, field.FieldName)
+		values = append(values, fmt.Sprintf("%v", engine.dialect.DataFormatting(reflect.ValueOf(model).Elem().Field(i).Interface())))
 	}
 	session.AddClause(INSERT, []interface{}{session.schema, columns, values})
 	session.Build()
-	_, err := engine.Exec(session.sqlBuilder.String())
-	return err
+	res, err := engine.Exec(session.sqlBuilder.String())
+	if err != nil {
+		return err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	reflect.ValueOf(model).Elem().FieldByName(session.schema.PrimaryKeyField.MemberName).Set(reflect.ValueOf(id))
+	
+	return nil
 }
 
 func (engine *Engine) Update(model interface{}) error {
@@ -126,7 +136,7 @@ func (engine *Engine) Update(model interface{}) error {
 		}
 		pairs = append(pairs, fmt.Sprintf("%s=%v", session.schema.Fields[i].FieldName, engine.dialect.DataFormatting(reflect.ValueOf(model).Field(i).Interface())))
 	}
-	condition := fmt.Sprintf("%s=%v", session.schema.PrimaryKeyField.MemberName, engine.dialect.DataFormatting(reflect.ValueOf(model).FieldByName(session.schema.PrimaryKeyField.MemberName) .Interface()))
+	condition := fmt.Sprintf("%s=%v", session.schema.PrimaryKeyField.FieldName, engine.dialect.DataFormatting(reflect.ValueOf(model).FieldByName(session.schema.PrimaryKeyField.MemberName) .Interface()))
 	session.AddClause(UPDATE, []interface{}{session.schema, pairs})
 	session.AddClause(WHERE, []interface{}{session.schema, []string{condition}})
 	session.Build()
@@ -136,7 +146,7 @@ func (engine *Engine) Update(model interface{}) error {
 
 func (engine *Engine) Delete(model interface{}) error {
 	session := engine.NewSession(reflect.TypeOf(model))
-	condition := fmt.Sprintf("%s=%v", session.schema.PrimaryKeyField.MemberName, engine.dialect.DataFormatting(reflect.ValueOf(model).FieldByName(session.schema.PrimaryKeyField.MemberName) .Interface()))
+	condition := fmt.Sprintf("%s=%v", session.schema.PrimaryKeyField.FieldName, engine.dialect.DataFormatting(reflect.ValueOf(model).FieldByName(session.schema.PrimaryKeyField.MemberName) .Interface()))
 	session.AddClause(DELETE, []interface{}{session.schema})
 	session.AddClause(WHERE, []interface{}{session.schema, []string{condition}})
 	session.Build()

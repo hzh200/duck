@@ -15,8 +15,15 @@ func (context *Context) GetParam(key string) string {
 	return context.Request.URL.Query().Get(key)
 }
 
-func (context *Context) PostParam(key string) string {
+func (context *Context) PostFormParam(key string) string {
+	context.Request.ParseForm()
 	return context.Request.FormValue(key)
+}
+
+func (context *Context) BodyParams() map[string]interface{} {
+	m := make(map[string]interface{})
+	json.NewDecoder(context.Request.Body).Decode(&m)
+	return m
 }
 
 func (context *Context) Status(code int) {
