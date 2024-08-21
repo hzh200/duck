@@ -9,9 +9,9 @@ set target_dir=build/%mode%
 rd /s /q %target_dir%
 md %target_dir%
 
-cp src/app/index.html %target_dir%/
 call yarn tailwindcss -i src/app/interfaces/styles/globals.css -o %target_dir%/globals.css
 call yarn webpack --config webpack.config.%mode%.js
+cp src/app/index.html %target_dir%/index.html
 
 set CGO_ENABLED=1 
 

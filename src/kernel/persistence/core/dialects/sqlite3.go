@@ -55,8 +55,7 @@ func (s *sqlite3) DataTypeMapping(fieldType reflect.Type) string {
 		}
 	}
 
-	msg, _ := fmt.Printf("DataTypeMapping: data type %s not supported", fieldType)
-	panic(msg)
+	panic(fmt.Sprintf("DataTypeMapping: data type %s not supported", fieldType))
 }
 
 func (s *sqlite3) DataFormatting(field interface{}) interface{} {
@@ -89,8 +88,7 @@ func (s *sqlite3) DataFormatting(field interface{}) interface{} {
 		}
 	}
 
-	msg, _ := fmt.Printf("DataFormatting: data type %s not supported", reflect.TypeOf(field))
-	panic(msg)
+	panic(fmt.Sprintf("DataFormatting: data type %s not supported", reflect.TypeOf(field)))
 }
 
 func (s *sqlite3) DataDeformatting(value interface{}, fieldType reflect.Type) interface{} {
@@ -358,8 +356,7 @@ func (s *sqlite3) DataDeformatting(value interface{}, fieldType reflect.Type) in
 		}
 	}
 
-	msg, _ := fmt.Printf("DataDeformatting: data type %s not supported", fieldType)
-	panic(msg)
+	panic(fmt.Sprintf("DataDeformatting: data type %s not supported", fieldType))
 }
 
 func (s *sqlite3) AutoIncrement() string {
