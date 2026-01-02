@@ -1,12 +1,14 @@
+from enum import Enum
 import os
 import shutil
-import sys
+from lib.platform import BUILD_PATH
 
-def clean(mode=""):
-    if mode != "release" and mode != "debug":
-        exit()
+class Mode(Enum):
+    DEBUG = "debug"
+    RELEASE = "release"
 
-    target_path = os.path.abspath(f"./build/{mode}")
+def clean(mode: Mode):
+    target_path = os.path.abspath(f"{BUILD_PATH}/{mode}")
 
     if not os.path.exists(target_path):
         os.makedirs(target_path)
@@ -17,7 +19,3 @@ def clean(mode=""):
             shutil.rmtree(sub_path)
         else:
             os.remove(sub_path)
-
-if __name__ == "_main__":
-    mode = sys.argv[1]
-    clean(mode)
