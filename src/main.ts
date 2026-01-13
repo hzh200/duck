@@ -1,8 +1,8 @@
-import { app, BrowserWindow, Event, screen, Tray, Menu, nativeImage, ipcMain } from 'electron';
+import { app, BrowserWindow, Event, screen, Tray, Menu, nativeImage, ipcMain, webFrame } from 'electron';
 import path, { resolve, basename } from 'node:path';
 import fs from 'node:fs';
 import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
-import { setConsoleMode, Log } from './utils/log';
+import { setConsoleMode, Log } from './electron/log';
 import os from 'node:os';
 import { exit } from 'node:process';
 
@@ -26,7 +26,7 @@ const DB_PATH = resolve(__dirname, './duck.db')
 const SETTING_PATH = resolve(__dirname, './setting.json');
 
 // System config.
-const DEV_MODE: boolean = process.env.NODE_ENV === 'development';
+const IS_DEV_MODE: boolean = process.env.NODE_ENV === 'development';
 
 // System setting.
 const globalSetting = {
@@ -47,7 +47,7 @@ const globalSetting = {
 };
 
 const kernelConfig = {
-  "-mode": DEV_MODE ? "dev" : "proc",
+  "-mode": IS_DEV_MODE ? "dev" : "proc",
   "-dbPath": DB_PATH,
   "-settingPath": SETTING_PATH
 }
@@ -72,6 +72,8 @@ let [xBeforeMaximization, yBeforeMaximization]: [number, number] = [0, 0];
 let [widthBeforeMaximization, heightBeforeMaximization]: [number, number] = [0, 0];
 let scaleFactor: number;
 
+//// Position ////
+
 const positionMain = (x: number, y: number) => {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -90,29 +92,32 @@ const resizeMain = (width: number, height: number) => {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
-  mainWindow.setSize(width, height);
+  mainWindow.setSize(width, height, true);
 };
 
 const launchAPP = () => new Promise<void>((resolve, _reject) => {
   const initMainWindow = () => {
     mainWindow = new BrowserWindow({
+      // width: mainWidth / scaleFactor,
+      // height: mainHeight / scaleFactor,
       width: mainWidth,
       height: mainHeight,
       icon,
       show: false,
-      frame: false,
-      transparent: true,
+      frame: true,
+      // transparent: true,
       webPreferences: {
-        preload: path.resolve(__dirname, 'preload.js')
+        preload: path.resolve(__dirname, 'preload.js'),
+        zoomFactor: 1.0 / scaleFactor
       }
     });
   
-    mainWindow.setMenu(null);
+    // mainWindow.setMenu(null);
     mainWindow.loadFile(APP_PATH);
 
     if (!globalSetting.slientMode) {
       mainWindow.once("ready-to-show", async () => {
-        if (DEV_MODE) {
+        if (IS_DEV_MODE) {
           await initDevToolsWindow();
         }
         mainWindow.show();
@@ -133,13 +138,13 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
 
   const initDevToolsWindow = (): Promise<void> => {
     devtoolsWindow = new BrowserWindow({
-      width: devtoolsWidth,
-      height: devtoolsHeight,
+      width: devtoolsWidth / scaleFactor,
+      height: devtoolsHeight / scaleFactor,
       icon,
       show: false,
       frame: true,
       webPreferences: {
-        zoomFactor: 3.0 // Not working
+        zoomFactor: 1.0 / scaleFactor
       }
     });
 
@@ -166,12 +171,6 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
       positionDevTools(devtoolsX, devtoolsY);
     });
 
-    mainWindow.addListener('close', (_event: Event) => {
-      if (!devtoolsWindow.isDestroyed()) {
-        devtoolsWindow.close();
-      }
-    });
-
     // mainWindow maximize and minimize event wouldn't be triggered here
     // mainWindow.on('minimize', (_event: Event) => {});
     // mainWindow.on('maximize', (_event: Event) => {});
@@ -193,26 +192,12 @@ const launchAPP = () => new Promise<void>((resolve, _reject) => {
   initMainWindow();
 });
 
-// const shutdownAPP = () => new Promise<void>((resolve, _reject) => {
-//   if (!mainWindow.isDestroyed()) {
-//     mainWindow.close();
-//   }
-//   const shutdownPromises = [new Promise<void>((resolve, _reject) => mainWindow.on('closed', resolve))];
-//   if (DEV_MODE) {
-//     if (!devtoolsWindow.isDestroyed()) {
-//       devtoolsWindow.close();
-//     }
-//     shutdownPromises.push(new Promise<void>((resolve, _reject) => devtoolsWindow.on('closed', resolve)));
-//   }
-//   Promise.all(shutdownPromises).then(() => resolve());
-// });
-
 const shutdownAPP = () => {
   clearInterval(settingTimeout);
   if (!mainWindow.isDestroyed()) {
     mainWindow.destroy();
   }
-  if (DEV_MODE) {
+  if (IS_DEV_MODE) {
     if (!devtoolsWindow.isDestroyed()) {
       devtoolsWindow.destroy();
     }
@@ -249,7 +234,10 @@ const launchTray = () => {
   ]);
   tray.setToolTip(SOFTWARE_NAME);
   tray.setContextMenu(contextMenu);
-  tray.on('double-click', () => mainWindow.show());
+  tray.on('double-click', () => {
+    mainWindow.show();
+    devtoolsWindow.show();
+  });
 };
 
 const shutdownTray = () => {
@@ -285,88 +273,36 @@ const shutdownSystem = async () => {
   // process.on('exit', () => process.exit(1));
 };
 
-if (!app.requestSingleInstanceLock()) {
-  Log.error("an instance is already running.");
-  await shutdownSystem();
-}
+const initFrame = () => {
+    const screenInfo = screen.getPrimaryDisplay();
 
-try {
-  await app.whenReady();
-  setConsoleMode(DEV_MODE);
-  
-  const screenInfo = screen.getPrimaryDisplay();
+    ({ width: screenWidth, height: screenHeight } = screenInfo.size);
+    scaleFactor = screenInfo.scaleFactor;
 
-  ({ width: screenWidth, height: screenHeight } = screenInfo.size);
-  scaleFactor = screenInfo.scaleFactor;
-
-  mainWidth = DEV_MODE ? Math.ceil((screenWidth * 0.85) * 0.6) : Math.ceil(screenWidth * 0.7);
-  mainHeight = Math.ceil(screenHeight * 0.6);
-  devtoolsWidth = Math.ceil((screenWidth * 0.8) * 0.4);
-  devtoolsHeight = Math.ceil(screenHeight * 0.8);
-  // Defaultly, put mainWindow on the center of the screen, if in dev mode, put mainWindow and devWindow together on the center of the screen.
-  mainX = Math.ceil((screenWidth - mainWidth) / 2);
-  if (DEV_MODE) {
-    mainX = Math.ceil(mainX - devtoolsWidth / 2);
-  }
-  mainY = Math.ceil((screenHeight - (DEV_MODE ? Math.max(mainHeight, devtoolsHeight) : mainHeight)) / 2);
-  // Put the DevTools window at the right side of the main window.
-  devtoolsX = mainX + mainWidth;
-  devtoolsY = mainY;
-
-  if (fs.existsSync(SETTING_PATH)) {
-    Object.assign(globalSetting, JSON.parse(fs.readFileSync(SETTING_PATH, {encoding: "utf-8"}))) 
-  } else {
-    fs.writeFileSync(SETTING_PATH, JSON.stringify(globalSetting))
-  }
-
-  ipcMain.on('updateSettings', (_event, settingsJson) => {
-    Object.assign(globalSetting, JSON.parse(settingsJson));
-    fs.writeFileSync(SETTING_PATH, settingsJson)
-  });
-
-  if (globalSetting.launchOnStartup) {
-    app.setLoginItemSettings({
-      openAtLogin: true,
-      path: process.execPath,
-      args: [
-        '--processStart', `"${EXE_NAME}"`,
-        '--process-start-args', '"--start-mode=silent"'
-      ]
-    });
-  } else {
-    app.setLoginItemSettings({ openAtLogin: false });
-  }
-
-  await launchSystem();
-  
-  mainWindow.on("close", async (event: Event) => {
-    if (appTerminating) {
-      return;
+    mainWidth = IS_DEV_MODE ? Math.ceil((screenWidth * 0.85) * 0.6) : Math.ceil(screenWidth * 0.7);
+    mainHeight = Math.ceil(screenHeight * 0.6);
+    devtoolsWidth = Math.ceil((screenWidth * 0.8) * 0.4);
+    devtoolsHeight = Math.ceil(screenHeight * 0.8);
+    // By default, put mainWindow on the center of the screen, if in dev mode, put mainWindow and devWindow together on the center of the screen.
+    mainX = Math.ceil((screenWidth - mainWidth) / 2);
+    if (IS_DEV_MODE) {
+      mainX = Math.ceil(mainX - devtoolsWidth / 2);
     }
-    event.preventDefault();
-    if (globalSetting.closeToTray) {
-      mainWindow.hide();
-    } else {
-      await shutdownSystem();
-    }
-  });
+    mainY = Math.ceil((screenHeight - (IS_DEV_MODE ? Math.max(mainHeight, devtoolsHeight) : mainHeight)) / 2);
+    // Put the DevTools window at the right side of the main window.
+    devtoolsX = mainX + mainWidth;
+    devtoolsY = mainY;
+};
 
+// Listeners for user-controlled panels.
+const addUserControllListeners = () => {
   ipcMain.handle('minimize', () => {
     if (mainWindow && !mainWindow.isDestroyed() && mainWindow.minimizable) {
       mainWindow.minimize();
-      // if (devtoolsWindow && !devtoolsWindow.isDestroyed()) {
-      //   // Not working.
-      //   mainWindow.addListener("restore", devtoolsWindow.show);
-      //   devtoolsWindow.hide();
-      //   // Would cause error.
-      //   devtoolsWindow.minimize();
-      // }
     }
   });
   ipcMain.handle('maximize', () => {
-    // if (mainWindow && !mainWindow.isDestroyed() && mainWindow.maximizable) {
     if (mainWindow && !mainWindow.isDestroyed()) {
-      // mainWindow.maximize();
       [xBeforeMaximization, yBeforeMaximization] = [mainX, mainY];
       [widthBeforeMaximization, heightBeforeMaximization] = [mainWidth, mainHeight];
       positionMain(0, 0);
@@ -377,9 +313,7 @@ try {
     }
   });
   ipcMain.handle('unmaximize', () => {
-    // if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isMaximized()) {
     if (mainWindow && !mainWindow.isDestroyed()) {
-      // mainWindow.unmaximize();
       positionMain(xBeforeMaximization, yBeforeMaximization);
       resizeMain(widthBeforeMaximization, heightBeforeMaximization);
       if (devtoolsWindow && !devtoolsWindow.isDestroyed() && !devtoolsWindow.isVisible()) {
@@ -392,7 +326,67 @@ try {
       mainWindow.close();
     }
   });
-} catch (err) {
-  Log.error(err instanceof Error ? err : String(err));
-  await shutdownSystem();
+};
+
+const main = async () => {
+  if (!app.requestSingleInstanceLock()) {
+    Log.error("an instance is already running.");
+    await shutdownSystem();
+  }
+
+  try {
+    await app.whenReady();
+    setConsoleMode(IS_DEV_MODE);
+
+    initFrame();
+
+    if (fs.existsSync(SETTING_PATH)) {
+      Object.assign(globalSetting, JSON.parse(fs.readFileSync(SETTING_PATH, {encoding: "utf-8"}))) 
+    } else {
+      fs.writeFileSync(SETTING_PATH, JSON.stringify(globalSetting))
+    }
+
+    ipcMain.on('updateSettings', (_event, settingsJson) => {
+      Object.assign(globalSetting, JSON.parse(settingsJson));
+      fs.writeFileSync(SETTING_PATH, settingsJson)
+    });
+
+    if (globalSetting.launchOnStartup) {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        path: process.execPath,
+        args: [
+          '--processStart', `"${EXE_NAME}"`,
+          '--process-start-args', '"--start-mode=silent"'
+        ]
+      });
+    } else {
+      app.setLoginItemSettings({ openAtLogin: false });
+    }
+
+    await launchSystem();
+    
+    mainWindow.on("close", async (event: Event) => {
+      if (appTerminating) {
+        return;
+      }
+      event.preventDefault();
+      if (globalSetting.closeToTray) {
+        mainWindow.hide();
+        devtoolsWindow.hide();
+      } else {
+        await shutdownSystem();
+      }
+    });
+
+    // addUserControllListeners();
+  } catch (err) {
+    Log.error(err instanceof Error ? err : String(err));
+    await shutdownSystem();
+  }
+};
+
+// Main process.
+if (process.type === "browser") {
+  main();
 }

@@ -22,8 +22,9 @@ function AppPage() {
 
   return (
     <React.Fragment>
-      <div id='app' className='h-screen w-full rounded-lg border-solid border'>
-        <div className='flex h-frame border-solid border-b'>
+      {/* <div id='app' className='h-screen w-full rounded-lg border-solid border-2 border-gray-400'> */}
+      <div id='app' className='h-screen w-full border-t'>
+        {/* <div className='flex h-frame border-solid border-b'>
           <div className="flex items-center h-full">
             <Badge variant="outline" className='mx-2 my-1'>
               <ArrowDownIcon className='h-6 w-4' />
@@ -49,7 +50,7 @@ function AppPage() {
               <Cross2Icon className='h-4 w-4' />
             </Button>
           </div>
-        </div>
+        </div> */}
         <div className='flex h-body w-full'>
           <nav className='flex flex-col justify-between h-full w-nav border-solid border-r rounded-none pb-1'>
             <div className='flex flex-col w-full'>

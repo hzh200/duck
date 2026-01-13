@@ -105,7 +105,7 @@ function DownloadPage(setting: {[key: string]: any}) {
             <CardContent>
                 <div className="grid w-full items-center gap-4 space-y-1.5">
                     <div className="flex flex-col w-full space-y-1.5">
-                        <Label htmlFor="extractor">Extractor</Label>
+                        <Label htmlFor="extractor">Extractor:</Label>
                         <Select onValueChange={(value) => {
                             for (const extractor of extractors) {
                                 if (extractor.name === value) {
@@ -125,7 +125,7 @@ function DownloadPage(setting: {[key: string]: any}) {
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
-                        <Label htmlFor="url">URL</Label>
+                        <Label htmlFor="url">URL:</Label>
                         <Textarea id="url" className="h-[60px] w-full" placeholder="Type url here." value={url} onChange={event => setUrl(event.target.value)} />
                         <div className="flex flex-row-reverse justify-between">
                             <Button className={`h-10 w-20 text-base`} onClick={() => extract()}>
@@ -173,8 +173,6 @@ function DownloadPage(setting: {[key: string]: any}) {
             <CardFooter className="">
             </CardFooter>
         </Card>
-
-        
     </div>
   );
 }

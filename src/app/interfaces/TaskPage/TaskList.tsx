@@ -49,7 +49,7 @@ function TaskList({ tasks, choosen, setChoosen }: TaskListProps) {
                 <TableCell key={index} className={column.classes ? column.classes.join(' ') : ''}>
                   {(() => {
                     const value = (task as any)[column.accessorKey];
-                    if (value !== (null || undefined)) {
+                    if (value !== null && value !== undefined) {
                       return column.convertor ? column.convertor(value, task) : value;
                     }
                     return '';

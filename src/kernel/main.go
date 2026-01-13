@@ -45,23 +45,42 @@ type TrafficLimit struct {
 	Limit string
 }
 
-func main() {
-	config, err := parseArgs()
+var config Config
+var setting Setting
+var manager *manage.Manager
 
-	if err != nil {
-		log.Error(err)
+func parseArgs() (Config, error) {
+	exe, err := os.Executable()
+    if err != nil {
+        return Config{}, err
+    }
+
+	mode := flag.String("mode", "dev", "kernel running mode: dev/proc")
+	dbPath := flag.String("dbPath", filepath.Join(filepath.Dir(exe), "./duck.db"), "database file path")
+	settingPath := flag.String("settingPath", filepath.Join(filepath.Dir(exe), "./setting.json"), "setting file path")
+	flag.Parse()
+
+	return Config{
+		devMode: *mode == "dev", 
+		dbPath: *dbPath,
+		settingPath: *settingPath,
+	}, nil
+}
+
+func initialize() error {
+	var err error
+
+	// Parse the program config.
+	if config, err = parseArgs(); err != nil {
+		return err
 	}
 
-	if config.devMode {
-		log.Info("Running under debug mode.")
+	// Init the gloal setting.
+	var bytes []byte
+	if bytes, err = os.ReadFile(config.settingPath); err != nil {
+		return err
 	}
-
-	settings := Setting{}
-	bytes, err := os.ReadFile(config.settingPath)
-	if err != nil {
-		log.Error(err)
-	}
-	json.Unmarshal(bytes, &settings)
+	json.Unmarshal(bytes, &setting)
 
 	// ticker := time.NewTicker(1 * time.Second)
 	// go func() {
@@ -78,45 +97,34 @@ func main() {
 	// }()
 
 	// Init the orm.
-	persistence, err := persistence.InitPersistence(config.dbPath)
+	var orm *persistence.Persistence
+	if orm, err = persistence.InitPersistence(config.dbPath); err != nil {
+		return err
+	}
+	
+	// Init the global manager.
+	manager = manage.NewManager(orm)
+	server.InitRoutes(manager)
+
+	return nil
+}
+
+func main() {
+	err := initialize()
 	if err != nil {
 		log.Error(err)
 	}
-	
-	// Init the main.
-	manager := manage.NewManager(persistence)
+
+	if config.devMode {
+		log.Info("Running under debug mode.")
+	}
 
 	// Start the scheduling procedure.
 	manager.Schedule()
 
-	// Init the http service.
-	server.InitRoutes(manager)
-	err = server.StartServer(settings.KernelPort)
-
+	// Start the http service.
+	err = server.StartServer(setting.KernelPort)
 	if err != nil {
 		log.Error(err)
 	}
-	
-}
-
-func parseArgs() (Config, error) {
-	exe, err := os.Executable()
-
-    if err != nil {
-        return Config{}, err
-    }
-
-    defaultDBPath := filepath.Join(filepath.Dir(exe), "./duck.db")
-	defaultSettingPath := filepath.Join(filepath.Dir(exe), "./setting.json")
-
-	mode := flag.String("mode", "proc", "kernel running mode: dev/proc")
-	dbPath := flag.String("dbPath", defaultDBPath, "database file path")
-	settingPath := flag.String("settingPath", defaultSettingPath, "setting file path")
-	flag.Parse()
-
-	return Config{
-		devMode: *mode == "dev", 
-		dbPath: *dbPath,
-		settingPath: *settingPath,
-	}, nil
 }

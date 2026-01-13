@@ -15,18 +15,18 @@ const MaximumTaskNum = 5
 
 type Manager struct {
 	queue *TaskQueue
-	persistence *persistence.Persistence
+	orm *persistence.Persistence
 	runningTaskNos []int64
 }
 
-func NewManager(persistence *persistence.Persistence) *Manager {
+func NewManager(orm *persistence.Persistence) *Manager {
 	manager := Manager{}
 	manager.queue = NewTaskQueue()
-	tasks, _ := persistence.GetAllTasks()
+	tasks, _ := orm.GetAllTasks()
 	for _, task := range tasks {
 		manager.queue.AddTask(task)	
 	}
-	manager.persistence = persistence
+	manager.orm = orm
 	manager.runningTaskNos = make([]int64, 0)
 	return &manager
 }
@@ -68,12 +68,11 @@ func (manager *Manager) Schedule() {
 						for {
 							if task.TaskProgress == task.TaskSize {
 								task.TaskStatus = constance.Successed
-								manager.persistence.UpdateTask(*task)
+								manager.orm.UpdateTask(*task)
 								break
 							}
-							manager.persistence.UpdateTask(*task)
-							//lint:ignore SA1004 ingore this for now
-							time.Sleep(100)
+							manager.orm.UpdateTask(*task)
+							time.Sleep(100) // lint:ignore SA1004 ingore this for now
 						}
 					}()
 				}
@@ -84,7 +83,7 @@ func (manager *Manager) Schedule() {
 }
 
 func (manager *Manager) AddTaskToQueue(task models.Task) {
-	manager.persistence.AddTask(&task)
+	manager.orm.AddTask(&task)
 	manager.queue.AddTask(task)
 	bytes, _ := json.Marshal(task); log.Info(fmt.Sprintf("Added task: %s", string(bytes)))
 }

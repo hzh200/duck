@@ -56,7 +56,7 @@ module.exports = [{
     target: 'electron-main',
     mode: 'development',
     entry: {
-        electron: './src/electron.ts',
+        electron: './src/main.ts',
     },
     output: {
         path: path.resolve(__dirname, 'build', 'debug'),
@@ -88,7 +88,7 @@ module.exports = [{
         ]
     },
     resolve: {
-        extensions: ['.ts', '.js'],
+        extensions: ['.ts', '.js']
     },
     devtool: 'source-map'
 }];

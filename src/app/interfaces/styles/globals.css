@@ -81,12 +81,16 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  .h-frame {
+  /* .h-frame {
     @apply h-11
   }
 
   .h-body {
     height: calc(100vh - theme('spacing.11') - 2px);
+  } */
+
+  .h-body {
+    height: calc(100vh - 2px);
   }
 
   .w-nav {

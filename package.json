@@ -18,11 +18,12 @@
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-switch": "^1.0.3",
+    "@radix-ui/react-toast": "^1.1.5",
     "@radix-ui/react-toggle": "^1.0.3",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@types/babel__core": "^7",
     "@types/electron": "^1.6.10",
-    "@types/node": "^20.11.20",
+    "@types/node": "^22.7.7",
     "@types/react": "^18.2.58",
     "@types/react-dom": "^18.2.19",
     "@types/webpack-node-externals": "^3",
@@ -30,7 +31,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "css-loader": "^6.10.0",
-    "electron": "^29.0.1",
+    "electron": "^39.2.7",
     "file-loader": "^6.2.0",
     "javascript-obfuscator": "^4.1.0",
     "next-themes": "^0.2.1",
@@ -44,11 +45,10 @@
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.3.3",
+    "typescript": "^5.9.3",
     "webpack": "^5.90.3",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0",
-    "webpack-obfuscator": "^3.5.1",
-    "@radix-ui/react-toast": "^1.1.5"
+    "webpack-obfuscator": "^3.5.1"
   }
 }
